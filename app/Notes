@@ -1,0 +1,3 @@
+Direct access to another application is restricted
+This app assumes that the app has the capability to read the manifest directly from the apk source directory,
+which won't be always available due to a Android restrictions.
