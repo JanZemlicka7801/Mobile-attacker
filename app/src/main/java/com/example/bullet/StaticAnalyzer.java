@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.LruCacheKt;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -87,10 +88,14 @@ public class StaticAnalyzer {
         } catch (Exception e) {
             // Log and display any errors encountered during analysis
             Log.e(TAG, "Error analyzing manifest", e);
-            TextView errorTextView = new TextView(context);
-            errorTextView.setText("Error analyzing manifest: " + e.getMessage());
-            resultsLayout.addView(errorTextView);
+            displayError(resultsLayout, context, "Error analyzing manifest: " + e.getMessage());
         }
+    }
+
+    private static void displayError(LinearLayout resultsLayout, Context context, String message) {
+        TextView errorTextView = new TextView(context);
+        errorTextView.setText(message);
+        resultsLayout.addView(errorTextView);
     }
 
     /**
@@ -113,14 +118,14 @@ public class StaticAnalyzer {
                     components.item(i).getAttributes().getNamedItem("android:exported").getNodeValue() : "false";
             if (Boolean.parseBoolean(exported)) {
                 // Create a checkbox for the exported component
-                CheckBox checkBox = getCheckBox(label, context, name);
+                CheckBox checkBox = createCheckbox(name, label, context);
                 // Add the checkbox to the results layout
                 resultsLayout.addView(checkBox);
             }
         }
     }
 
-    private static @NonNull CheckBox getCheckBox(String label, Context context, String name) {
+    private static CheckBox createCheckbox(String name, String label, Context context) {
         CheckBox checkBox = new CheckBox(context);
         checkBox.setText(label + ": " + name);
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
