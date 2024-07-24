@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "AppExtractor";
     private static final int PERMISSION_REQUEST_CODE = 1;
+    private TextView textViewApkInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
         Button btnExtract = findViewById(R.id.btnExtract);
+        textViewApkInfo = findViewById(R.id.textViewApkInfo);
 
         btnExtract.setOnClickListener(view -> {
             String packageName = editTextPackageName.getText().toString().trim();
@@ -92,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     copyFile(sourceFile, destFile);
                     Log.i(TAG, "Successfully stored: " + destFile.getAbsolutePath() + " for package: " + packageName);
                     Toast.makeText(this, "APK stored at: " + destFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                    textViewApkInfo.setText("Stored APK Path: " + destFile.getAbsolutePath() + "\nPackage Name: " + packageName);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Failed to store APK", Toast.LENGTH_SHORT).show();
