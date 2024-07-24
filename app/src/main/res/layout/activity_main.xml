@@ -9,17 +9,17 @@
         android:id="@+id/editTextPackageName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter package name"
+        android:hint="Enter Package Name"
         android:layout_margin="16dp"
-        android:inputType="text" />
+        android:layout_centerHorizontal="true"/>
 
     <Button
         android:id="@+id/btnExtract"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Extract App Info"
+        android:text="Extract APK"
         android:layout_below="@id/editTextPackageName"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
