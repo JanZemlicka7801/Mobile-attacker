@@ -61,6 +61,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // This method displays an error message
+    private void displayMessage(String message){
+        Log.e(TAG, message);
+        TextView errorTextView = new TextView(this);
+        errorTextView.setText(message);
+        resultsLayout.addView(errorTextView);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -100,10 +108,7 @@ public class MainActivity extends AppCompatActivity {
                     // Analyze the manifest
                     ManifestAnalyzer.analyzeManifest(manifestFile, resultsLayout, this);
                 } else {
-                    Log.e(TAG, "Failed to find AndroidManifest.xml in the decompiled APK.");
-                    TextView errorTextView = new TextView(this);
-                    errorTextView.setText("Failed to find AndroidManifest.xml in the decompiled APK.");
-                    resultsLayout.addView(errorTextView);
+                    displayMessage("Failed to find AndroidManifest.xml in the decompiled APK.");
                 }
             } else {
                 Log.e(TAG, "Failed to decompile APK.");
