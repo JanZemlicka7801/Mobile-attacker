@@ -64,10 +64,21 @@ public class ManifestAnalyzer {
         } catch (Exception e) {
             // Log and display any errors encountered during analysis
             Log.e(TAG, "Error analyzing manifest", e);
-            TextView errorTextView = new TextView(context);
-            errorTextView.setText("Error analyzing manifest: " + e.getMessage());
-            resultsLayout.addView(errorTextView);
+            displayError(resultsLayout, context, "Error analyzing manifest: " + e.getMessage());
         }
+    }
+
+    private static CheckBox createCheckBox(String label, String name, Context context) {
+        CheckBox checkBox = new CheckBox(context);
+        checkBox.setText(label + ": " + name);
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked) {
+                selectedComponents.add(name);
+            } else {
+                selectedComponents.remove(name);
+            }
+        });
+        return checkBox;
     }
 
     /**
@@ -89,20 +100,16 @@ public class ManifestAnalyzer {
                     components.item(i).getAttributes().getNamedItem("android:exported").getNodeValue() : "false";
             if (Boolean.parseBoolean(exported)) {
                 // Create a checkbox for the exported component
-                CheckBox checkBox = new CheckBox(context);
-                checkBox.setText(label + ": " + name);
-                checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    if (isChecked) {
-                        // Add component to selected list if checked
-                        selectedComponents.add(name);
-                    } else {
-                        // Remove component from selected list if unchecked
-                        selectedComponents.remove(name);
-                    }
-                });
+                CheckBox checkBox = createCheckBox(label, name, context);
                 // Add the checkbox to the results layout
                 resultsLayout.addView(checkBox);
             }
         }
+    }
+
+    private static void displayError(LinearLayout resultsLayout, Context context, String name) {
+        TextView errorTextView = new TextView(context);
+        errorTextView.setText(name);
+        resultsLayout.addView(errorTextView);
     }
 }
