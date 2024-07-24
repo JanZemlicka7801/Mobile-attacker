@@ -32,22 +32,19 @@ public class MainActivity extends AppCompatActivity {
         Button analyzeButton = findViewById(R.id.analyzeButton);
         resultsLayout = findViewById(R.id.resultsLayout);
 
-        analyzeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String packageName = packageNameEditText.getText().toString().trim();
-                if (!packageName.isEmpty()) {
-                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                            != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-                    } else {
-                        resultsLayout.removeAllViews();
-                        performAnalysis(packageName);
-                    }
+        analyzeButton.setOnClickListener(v -> {
+            String packageName = packageNameEditText.getText().toString().trim();
+            if (!packageName.isEmpty()) {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
                 } else {
-                    displayMessage("Please enter a valid package name.");
+                    resultsLayout.removeAllViews();
+                    performAnalysis(packageName);
                 }
+            } else {
+                displayMessage("Please enter a valid package name.");
             }
         });
     }
