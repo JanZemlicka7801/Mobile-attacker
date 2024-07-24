@@ -19,33 +19,40 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int PERMISSION_REQUEST_CODE = 1;
-    private static final String TAG = "MainActivity";
-    private LinearLayout resultsLayout;
+    private static final int PERMISSION_REQUEST_CODE = 1; // Request code for permissions
+    private static final String TAG = "MainActivity"; // Tag for logging
+    private LinearLayout resultsLayout; // Layout to display results
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); // Set the content view to the layout
 
+        // Initialize UI components
         EditText packageNameEditText = findViewById(R.id.packageNameEditText);
         Button analyzeButton = findViewById(R.id.analyzeButton);
         resultsLayout = findViewById(R.id.resultsLayout);
 
+        // Set an OnClickListener on the analyze button
         analyzeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Get the package name from the EditText
                 String packageName = packageNameEditText.getText().toString().trim();
                 if (!packageName.isEmpty()) {
+                    // Check for read external storage permission
                     if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
                             != PackageManager.PERMISSION_GRANTED) {
+                        // Request permission if not granted
                         ActivityCompat.requestPermissions(MainActivity.this,
                                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
                     } else {
-                        resultsLayout.removeAllViews();
+                        // If permission granted, perform analysis
+                        resultsLayout.removeAllViews(); // Clear previous results
                         performAnalysis(packageName);
                     }
                 } else {
+                    // Display error message if package name is empty
                     TextView errorTextView = new TextView(MainActivity.this);
                     errorTextView.setText("Please enter a valid package name.");
                     resultsLayout.addView(errorTextView);
@@ -62,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 // Permission granted, proceed with analysis
                 EditText packageNameEditText = findViewById(R.id.packageNameEditText);
                 String packageName = packageNameEditText.getText().toString().trim();
-                resultsLayout.removeAllViews();
+                resultsLayout.removeAllViews(); // Clear previous results
                 performAnalysis(packageName);
             } else {
                 // Permission denied, show error message
@@ -75,17 +82,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void performAnalysis(String packageName) {
         Log.d(TAG, "Starting APK extraction for package: " + packageName);
+        // Extract APK for the given package name
         File apkFile = APKExtractor.extractAPK(this, packageName);
         if (apkFile != null) {
             Log.d(TAG, "APK extracted successfully: " + apkFile.getAbsolutePath());
+            // Directory to store the decompiled APK
             String decompileDir = getExternalFilesDir(null) + "/" + packageName + "_decompiled";
+            // Decompile the APK
             boolean decompileSuccess = APKDecompiler.decompileAPK(apkFile.getAbsolutePath(), decompileDir);
 
             if (decompileSuccess) {
                 Log.d(TAG, "APK decompiled successfully into: " + decompileDir);
+                // Check for AndroidManifest.xml in the decompiled APK
                 File manifestFile = new File(decompileDir, "AndroidManifest.xml");
                 if (manifestFile.exists()) {
                     Log.d(TAG, "Found AndroidManifest.xml, starting analysis.");
+                    // Analyze the manifest
                     ManifestAnalyzer.analyzeManifest(manifestFile, resultsLayout, this);
                 } else {
                     Log.e(TAG, "Failed to find AndroidManifest.xml in the decompiled APK.");
