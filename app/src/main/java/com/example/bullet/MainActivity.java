@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
-                    if (activityInfo.exported && !(activityInfo.name.contains("com.android.app.MainActivity"))) {
+                    if (activityInfo.exported) {
                         ipcList.add("Activity: " + activityInfo.name);
                     }
                 }
@@ -126,32 +126,38 @@ public class MainActivity extends AppCompatActivity {
     private void onItemClick(String selectedItem) {
         if (selectedItem.startsWith("Activity: ")) {
             String activityName = selectedItem.replace("Activity: ", "");
-            // Show options to the user to choose how to launch the activity
-            showLaunchOptions(currentPackageName, activityName);
+            showLaunchOptions(currentPackageName, activityName, "activity");
+        } else if (selectedItem.startsWith("Service: ")) {
+            String serviceName = selectedItem.replace("Service: ", "");
+            showLaunchOptions(currentPackageName, serviceName, "service");
         } else {
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
             // Further actions for other IPC components can be added here
         }
     }
 
-    private void showLaunchOptions(String packageName, String activityName) {
-        // Show options to the user to choose how to launch the activity
-        String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
-        new AlertDialog.Builder(this)
-                .setTitle("Launch Options")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        // Launch activity without action and category
-                        launchActivity(packageName, activityName);
-                    } else {
-                        // Launch activity with action and category
-                        promptForActionAndCategory(packageName, activityName);
-                    }
-                })
-                .show();
+    private void showLaunchOptions(String packageName, String componentName, String type) {
+        // Show options to the user to choose how to launch the component
+        if (type.equals("activity")) {
+            String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
+            new AlertDialog.Builder(this)
+                    .setTitle("Launch Options")
+                    .setItems(options, (dialog, which) -> {
+                        if (which == 0) {
+                            // Launch activity without action and category
+                            launchActivity(packageName, componentName);
+                        } else {
+                            // Launch activity with action and category
+                            promptForActionAndCategory(packageName, componentName, "activity");
+                        }
+                    })
+                    .show();
+        } else if (type.equals("service")) {
+            promptForServiceParameters(packageName, componentName);
+        }
     }
 
-    private void promptForActionAndCategory(String packageName, String activityName) {
+    private void promptForActionAndCategory(String packageName, String componentName, String type) {
         // Create an alert dialog with input fields for action and category
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Action and Category");
@@ -175,7 +181,9 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("OK", (dialog, which) -> {
             String action = inputAction.getText().toString().trim();
             String category = inputCategory.getText().toString().trim();
-            launchActivityWithActionAndCategory(packageName, activityName, action, category);
+            if (type.equals("activity")) {
+                launchActivityWithActionAndCategory(packageName, componentName, action, category);
+            }
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
@@ -209,6 +217,46 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to launch activity with action and category: " + activityName, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void promptForServiceParameters(String packageName, String serviceName) {
+        // Create an alert dialog with input fields for extras
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Service Parameters");
+
+        // Set up the input fields
+        EditText inputData = new EditText(this);
+        inputData.setHint("Enter data (e.g., my data)");
+
+        // Use a vertical LinearLayout to hold the EditText
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.addView(inputData);
+
+        builder.setView(layout);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String data = inputData.getText().toString().trim();
+            launchServiceWithExtras(packageName, serviceName, data);
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void launchServiceWithExtras(String packageName, String serviceName, String data) {
+        try {
+            Intent intent = new Intent();
+            intent.setComponent(new ComponentName(packageName, serviceName));
+            if (!data.isEmpty()) {
+                intent.putExtra("data", data);
+            }
+            startService(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to launch service with data: " + serviceName, Toast.LENGTH_SHORT).show();
         }
     }
 
