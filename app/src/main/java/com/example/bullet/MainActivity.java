@@ -1,6 +1,7 @@
 package com.example.bullet;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -8,7 +9,6 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1;
     private ListView listViewIPC;
     private ArrayList<String> ipcList;
+    private PackageManager packageManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, ipcList);
         listViewIPC.setAdapter(adapter);
 
+        packageManager = getPackageManager();
+
         btnFetchIPC.setOnClickListener(view -> {
             String packageName = editTextPackageName.getText().toString().trim();
             if (!packageName.isEmpty()) {
@@ -55,8 +58,13 @@ public class MainActivity extends AppCompatActivity {
 
         listViewIPC.setOnItemClickListener((parent, view, position, id) -> {
             String selectedItem = ipcList.get(position);
-            Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
-            // Perform further actions with the selected item here
+            if (selectedItem.startsWith("Activity: ")) {
+                String activityName = selectedItem.replace("Activity: ", "");
+                launchActivity(activityName);
+            } else {
+                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+                // Further actions for other IPC components can be added here
+            }
         });
     }
 
@@ -74,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchExportedIPCList(String packageName) {
-        PackageManager packageManager = getPackageManager();
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
                     PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
@@ -82,18 +89,18 @@ public class MainActivity extends AppCompatActivity {
 
             ipcList.clear();
 
-            if (packageInfo.services != null) {
-                for (ServiceInfo serviceInfo : packageInfo.services) {
-                    if (serviceInfo.exported) {
-                        ipcList.add("Service: " + serviceInfo.name);
-                    }
-                }
-            }
-
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
                     if (activityInfo.exported) {
                         ipcList.add("Activity: " + activityInfo.name);
+                    }
+                }
+            }
+
+            if (packageInfo.services != null) {
+                for (ServiceInfo serviceInfo : packageInfo.services) {
+                    if (serviceInfo.exported) {
+                        ipcList.add("Service: " + serviceInfo.name);
                     }
                 }
             }
@@ -119,6 +126,17 @@ public class MainActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             Toast.makeText(this, "Package not found", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void launchActivity(String activityName) {
+        try {
+            Intent intent = new Intent();
+            intent.setClassName(this, activityName);
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to launch activity: " + activityName, Toast.LENGTH_SHORT).show();
         }
     }
 
