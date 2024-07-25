@@ -14,20 +14,11 @@
         android:layout_centerHorizontal="true"/>
 
     <Button
-        android:id="@+id/btnExtract"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Extract APK"
-        android:layout_below="@id/editTextPackageName"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true"/>
-
-    <Button
         android:id="@+id/btnFetchIPC"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Fetch IPC List"
-        android:layout_below="@id/btnExtract"
+        android:layout_below="@id/editTextPackageName"
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
 
