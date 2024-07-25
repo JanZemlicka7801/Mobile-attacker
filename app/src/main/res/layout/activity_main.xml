@@ -22,12 +22,28 @@
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
 
-    <TextView
-        android:id="@+id/textViewApkInfo"
+    <Button
+        android:id="@+id/btnFetchIPC"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
+        android:text="Fetch IPC List"
         android:layout_below="@id/btnExtract"
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnFetchIPC"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true">
+
+        <TextView
+            android:id="@+id/textViewApkInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""/>
+    </ScrollView>
+
 </RelativeLayout>

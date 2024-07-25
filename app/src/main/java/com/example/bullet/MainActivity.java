@@ -1,14 +1,19 @@
 package com.example.bullet;
 
 import android.Manifest;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
         Button btnExtract = findViewById(R.id.btnExtract);
+        Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
         textViewApkInfo = findViewById(R.id.textViewApkInfo);
 
         btnExtract.setOnClickListener(view -> {
@@ -47,6 +53,15 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, "Permissions are not granted", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnFetchIPC.setOnClickListener(view -> {
+            String packageName = editTextPackageName.getText().toString().trim();
+            if (!packageName.isEmpty()) {
+                fetchIPCList(packageName);
             } else {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
             }
@@ -118,6 +133,56 @@ public class MainActivity extends AppCompatActivity {
             while ((length = in.read(buffer)) > 0) {
                 out.write(buffer, 0, length);
             }
+        }
+    }
+
+    private void fetchIPCList(String packageName) {
+        PackageManager packageManager = getPackageManager();
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
+                    PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
+                            PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
+
+            StringBuilder ipcList = new StringBuilder();
+            ipcList.append("IPC Components of ").append(packageName).append(":\n\n");
+
+            if (packageInfo.services != null) {
+                ipcList.append("Services:\n");
+                for (ServiceInfo serviceInfo : packageInfo.services) {
+                    ipcList.append(serviceInfo.name).append("\n");
+                }
+                ipcList.append("\n");
+            }
+
+            if (packageInfo.activities != null) {
+                ipcList.append("Activities:\n");
+                for (ActivityInfo activityInfo : packageInfo.activities) {
+                    ipcList.append(activityInfo.name).append("\n");
+                }
+                ipcList.append("\n");
+            }
+
+            if (packageInfo.providers != null) {
+                ipcList.append("Content Providers:\n");
+                for (ProviderInfo providerInfo : packageInfo.providers) {
+                    ipcList.append(providerInfo.name).append("\n");
+                }
+                ipcList.append("\n");
+            }
+
+            if (packageInfo.receivers != null) {
+                ipcList.append("Broadcast Receivers:\n");
+                for (ActivityInfo receiverInfo : packageInfo.receivers) {
+                    ipcList.append(receiverInfo.name).append("\n");
+                }
+                ipcList.append("\n");
+            }
+
+            textViewApkInfo.setText(ipcList.toString());
+
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Package not found", Toast.LENGTH_SHORT).show();
         }
     }
 
