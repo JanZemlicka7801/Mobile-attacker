@@ -158,10 +158,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up the input fields
         EditText inputAction = new EditText(this);
-        inputAction.setHint("Enter action (e.g., .VIEW)");
+        inputAction.setHint("Enter action (e.g., VIEW)");
 
         EditText inputCategory = new EditText(this);
-        inputCategory.setHint("Enter category (e.g., .DEFAULT)");
+        inputCategory.setHint("Enter category (e.g., DEFAULT)");
 
         // Use a vertical LinearLayout to hold the EditTexts
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
@@ -199,10 +199,10 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
             if (!action.isEmpty()) {
-                intent.setAction(packageName + action);
+                intent.setAction(action);
             }
             if (!category.isEmpty()) {
-                intent.addCategory(packageName + category);
+                intent.addCategory(category);
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
