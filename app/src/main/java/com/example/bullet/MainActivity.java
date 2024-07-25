@@ -125,15 +125,32 @@ public class MainActivity extends AppCompatActivity {
     private void onItemClick(String selectedItem) {
         if (selectedItem.startsWith("Activity: ")) {
             String activityName = selectedItem.replace("Activity: ", "");
-            // Launch activity directly without action and category
-            launchActivityDirectly(currentPackageName, activityName);
+            // Show options to the user to choose how to launch the activity
+            showLaunchOptions(currentPackageName, activityName);
         } else {
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
             // Further actions for other IPC components can be added here
         }
     }
 
-    private void launchActivityDirectly(String packageName, String activityName) {
+    private void showLaunchOptions(String packageName, String activityName) {
+        // Show options to the user to choose how to launch the activity
+        String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Launch Options")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        // Launch activity without action and category
+                        launchActivity(packageName, activityName);
+                    } else {
+                        // Launch activity with action and category
+                        launchActivityWithActionAndCategory(packageName, activityName);
+                    }
+                })
+                .show();
+    }
+
+    private void launchActivity(String packageName, String activityName) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
@@ -142,6 +159,20 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to launch activity: " + activityName, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void launchActivityWithActionAndCategory(String packageName, String activityName) {
+        try {
+            Intent intent = new Intent();
+            intent.setComponent(new ComponentName(packageName, activityName));
+            intent.setAction(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to launch activity with action and category: " + activityName, Toast.LENGTH_SHORT).show();
         }
     }
 
