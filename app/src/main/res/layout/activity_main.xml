@@ -22,8 +22,8 @@
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
 
-    <ListView
-        android:id="@+id/listViewIPC"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewIPC"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btnFetchIPC"

@@ -1,6 +1,7 @@
 package com.example.bullet;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -10,16 +11,16 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -27,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "AppExtractor";
     private static final int PERMISSION_REQUEST_CODE = 1;
-    private ListView listViewIPC;
-    private ArrayList<String> ipcList;
+    private RecyclerView recyclerViewIPC;
+    private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
     private String currentPackageName;
 
@@ -41,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
         Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
-        listViewIPC = findViewById(R.id.listViewIPC);
+        recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
 
-        ipcList = new ArrayList<>();
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, ipcList);
-        listViewIPC.setAdapter(adapter);
+        recyclerViewIPC.setLayoutManager(new LinearLayoutManager(this));
+        ipcAdapter = new IPCAdapter(new ArrayList<>(), this::onItemClick);
+        recyclerViewIPC.setAdapter(ipcAdapter);
 
         packageManager = getPackageManager();
 
@@ -56,20 +57,6 @@ public class MainActivity extends AppCompatActivity {
                 fetchExportedIPCList(packageName);
             } else {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        listViewIPC.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedItem = ipcList.get(position);
-            if (selectedItem.startsWith("Activity: ")) {
-                String activityName = selectedItem.replace("Activity: ", "");
-                // Launch activity without specifying action and category
-                launchActivity(currentPackageName, activityName);
-                // Launch activity with specified action and category
-                launchActivityWithActionAndCategory(currentPackageName, activityName);
-            } else {
-                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
-                // Further actions for other IPC components can be added here
             }
         });
     }
@@ -93,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                     PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
                             PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
 
-            ipcList.clear();
+            ArrayList<String> ipcList = new ArrayList<>();
 
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
@@ -127,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            ((ArrayAdapter) listViewIPC.getAdapter()).notifyDataSetChanged();
+            ipcAdapter.updateIPCList(ipcList);
 
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
@@ -135,27 +122,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchActivity(String packageName, String activityName) {
+    private void onItemClick(String selectedItem) {
+        if (selectedItem.startsWith("Activity: ")) {
+            String activityName = selectedItem.replace("Activity: ", "");
+            // Launch activity directly without action and category
+            launchActivityDirectly(currentPackageName, activityName);
+        } else {
+            Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+            // Further actions for other IPC components can be added here
+        }
+    }
+
+    private void launchActivityDirectly(String packageName, String activityName) {
         try {
             Intent intent = new Intent();
-            intent.setClassName(packageName, activityName);
+            intent.setComponent(new ComponentName(packageName, activityName));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to launch activity: " + activityName, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void launchActivityWithActionAndCategory(String packageName, String activityName) {
-        try {
-            Intent intent = new Intent();
-            intent.setClassName(packageName, activityName);
-            intent.setAction(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_LAUNCHER);
-            startActivity(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to launch activity with action and category: " + activityName, Toast.LENGTH_SHORT).show();
         }
     }
 
