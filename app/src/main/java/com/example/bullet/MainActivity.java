@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             String selectedItem = ipcList.get(position);
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
             // Perform further actions with the selected item here
+            // For example, you could start a new activity, display more details, etc.
         });
     }
 
@@ -160,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.services != null) {
                 for (ServiceInfo serviceInfo : packageInfo.services) {
                     if (serviceInfo.exported) {
-                        ipcList.add(serviceInfo.name);
+                        ipcList.add("Service: " + serviceInfo.name);
                     }
                 }
             }
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
                     if (activityInfo.exported && !(activityInfo.name.contains("com.android.app.MainActivity"))) {
-                        ipcList.add(activityInfo.name);
+                        ipcList.add("Activity: " + activityInfo.name);
                     }
                 }
             }
@@ -176,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.providers != null) {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
-                        ipcList.add(providerInfo.name);
+                        ipcList.add("Provider: " + providerInfo.name);
                     }
                 }
             }
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.receivers != null) {
                 for (ActivityInfo receiverInfo : packageInfo.receivers) {
                     if (receiverInfo.exported) {
-                        ipcList.add(receiverInfo.name);
+                        ipcList.add("Receiver: " + receiverInfo.name);
                     }
                 }
             }
