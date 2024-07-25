@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -32,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
     private String currentPackageName;
-    private EditText editTextAction;
-    private EditText editTextCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +42,6 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
 
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
-        editTextAction = findViewById(R.id.editTextAction);
-        editTextCategory = findViewById(R.id.editTextCategory);
         Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
         recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
 
@@ -88,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
-                    if (activityInfo.exported) {
+                    if (activityInfo.exported && !(activityInfo.name.contains("com.android.app.MainActivity"))) {
                         ipcList.add("Activity: " + activityInfo.name);
                     }
                 }
@@ -140,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     private void showLaunchOptions(String packageName, String activityName) {
         // Show options to the user to choose how to launch the activity
         String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle("Launch Options")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -148,10 +145,41 @@ public class MainActivity extends AppCompatActivity {
                         launchActivity(packageName, activityName);
                     } else {
                         // Launch activity with action and category
-                        launchActivityWithActionAndCategory(packageName, activityName);
+                        promptForActionAndCategory(packageName, activityName);
                     }
                 })
                 .show();
+    }
+
+    private void promptForActionAndCategory(String packageName, String activityName) {
+        // Create an alert dialog with input fields for action and category
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Action and Category");
+
+        // Set up the input fields
+        EditText inputAction = new EditText(this);
+        inputAction.setHint("Enter action (e.g., .VIEW)");
+
+        EditText inputCategory = new EditText(this);
+        inputCategory.setHint("Enter category (e.g., .DEFAULT)");
+
+        // Use a vertical LinearLayout to hold the EditTexts
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.addView(inputAction);
+        layout.addView(inputCategory);
+
+        builder.setView(layout);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String action = inputAction.getText().toString().trim();
+            String category = inputCategory.getText().toString().trim();
+            launchActivityWithActionAndCategory(packageName, activityName, action, category);
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
 
     private void launchActivity(String packageName, String activityName) {
@@ -166,18 +194,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchActivityWithActionAndCategory(String packageName, String activityName) {
+    private void launchActivityWithActionAndCategory(String packageName, String activityName, String action, String category) {
         try {
-            String action = editTextAction.getText().toString().trim();
-            String category = editTextCategory.getText().toString().trim();
-
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
             if (!action.isEmpty()) {
-                intent.setAction(action);
+                intent.setAction(packageName + action);
             }
             if (!category.isEmpty()) {
-                intent.addCategory(category);
+                intent.addCategory(packageName + category);
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);

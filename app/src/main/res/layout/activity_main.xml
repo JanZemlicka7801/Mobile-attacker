@@ -13,30 +13,12 @@
         android:layout_margin="16dp"
         android:layout_centerHorizontal="true"/>
 
-    <EditText
-        android:id="@+id/editTextAction"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter Action (optional)"
-        android:layout_margin="16dp"
-        android:layout_below="@id/editTextPackageName"
-        android:layout_centerHorizontal="true"/>
-
-    <EditText
-        android:id="@+id/editTextCategory"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter Category (optional)"
-        android:layout_margin="16dp"
-        android:layout_below="@id/editTextAction"
-        android:layout_centerHorizontal="true"/>
-
     <Button
         android:id="@+id/btnFetchIPC"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Fetch IPC List"
-        android:layout_below="@id/editTextCategory"
+        android:layout_below="@id/editTextPackageName"
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
 
