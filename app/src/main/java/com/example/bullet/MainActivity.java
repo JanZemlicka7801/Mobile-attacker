@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.activities != null) {
                 ipcList.append("Activities:\n");
                 for (ActivityInfo activityInfo : packageInfo.activities) {
-                    if (activityInfo.exported) {
+                    if (activityInfo.exported  && !(activityInfo.name.contains("com.android.app.MainActivity"))) {
                         ipcList.append(activityInfo.name).append("\n");
                     }
                 }
