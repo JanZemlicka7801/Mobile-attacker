@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
     private String currentPackageName;
+    private EditText editTextAction;
+    private EditText editTextCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
 
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
+        editTextAction = findViewById(R.id.editTextAction);
+        editTextCategory = findViewById(R.id.editTextCategory);
         Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
         recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
 
@@ -164,10 +168,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void launchActivityWithActionAndCategory(String packageName, String activityName) {
         try {
+            String action = editTextAction.getText().toString().trim();
+            String category = editTextCategory.getText().toString().trim();
+
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
-            intent.setAction(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            if (!action.isEmpty()) {
+                intent.setAction(action);
+            }
+            if (!category.isEmpty()) {
+                intent.addCategory(category);
+            }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (Exception e) {
