@@ -9,6 +9,7 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView listViewIPC;
     private ArrayList<String> ipcList;
     private PackageManager packageManager;
+    private String currentPackageName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         btnFetchIPC.setOnClickListener(view -> {
             String packageName = editTextPackageName.getText().toString().trim();
             if (!packageName.isEmpty()) {
+                currentPackageName = packageName;
                 fetchExportedIPCList(packageName);
             } else {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
@@ -60,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
             String selectedItem = ipcList.get(position);
             if (selectedItem.startsWith("Activity: ")) {
                 String activityName = selectedItem.replace("Activity: ", "");
-                launchActivity(activityName);
+                launchActivity(currentPackageName, activityName);
             } else {
                 Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
                 // Further actions for other IPC components can be added here
@@ -129,10 +132,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchActivity(String activityName) {
+    private void launchActivity(String packageName, String activityName) {
         try {
             Intent intent = new Intent();
-            intent.setClassName(this, activityName);
+            intent.setClassName(packageName, activityName);
             startActivity(intent);
         } catch (Exception e) {
             e.printStackTrace();
