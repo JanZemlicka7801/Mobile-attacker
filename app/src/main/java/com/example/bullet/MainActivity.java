@@ -63,7 +63,10 @@ public class MainActivity extends AppCompatActivity {
             String selectedItem = ipcList.get(position);
             if (selectedItem.startsWith("Activity: ")) {
                 String activityName = selectedItem.replace("Activity: ", "");
+                // Launch activity without specifying action and category
                 launchActivity(currentPackageName, activityName);
+                // Launch activity with specified action and category
+                launchActivityWithActionAndCategory(currentPackageName, activityName);
             } else {
                 Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
                 // Further actions for other IPC components can be added here
@@ -140,6 +143,19 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to launch activity: " + activityName, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void launchActivityWithActionAndCategory(String packageName, String activityName) {
+        try {
+            Intent intent = new Intent();
+            intent.setClassName(packageName, activityName);
+            intent.setAction(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to launch activity with action and category: " + activityName, Toast.LENGTH_SHORT).show();
         }
     }
 
