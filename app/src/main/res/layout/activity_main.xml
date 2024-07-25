@@ -31,19 +31,12 @@
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
 
-    <ScrollView
-        android:id="@+id/scrollView"
+    <ListView
+        android:id="@+id/listViewIPC"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btnFetchIPC"
         android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true">
-
-        <TextView
-            android:id="@+id/textViewApkInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""/>
-    </ScrollView>
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

@@ -11,9 +11,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,12 +27,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "AppExtractor";
     private static final int PERMISSION_REQUEST_CODE = 1;
-    private TextView textViewApkInfo;
+    private ListView listViewIPC;
+    private ArrayList<String> ipcList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +46,11 @@ public class MainActivity extends AppCompatActivity {
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
         Button btnExtract = findViewById(R.id.btnExtract);
         Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
-        textViewApkInfo = findViewById(R.id.textViewApkInfo);
+        listViewIPC = findViewById(R.id.listViewIPC);
+
+        ipcList = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, ipcList);
+        listViewIPC.setAdapter(adapter);
 
         btnExtract.setOnClickListener(view -> {
             String packageName = editTextPackageName.getText().toString().trim();
@@ -64,6 +72,12 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        listViewIPC.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedItem = ipcList.get(position);
+            Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+            // Perform further actions with the selected item here
         });
     }
 
@@ -109,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
                     copyFile(sourceFile, destFile);
                     Log.i(TAG, "Successfully stored: " + destFile.getAbsolutePath() + " for package: " + packageName);
                     Toast.makeText(this, "APK stored at: " + destFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                    textViewApkInfo.setText("Stored APK Path: " + destFile.getAbsolutePath() + "\nPackage Name: " + packageName);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Failed to store APK", Toast.LENGTH_SHORT).show();
@@ -142,50 +155,41 @@ public class MainActivity extends AppCompatActivity {
                     PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
                             PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
 
-            StringBuilder ipcList = new StringBuilder();
-            ipcList.append("Exported IPC Components of ").append(packageName).append(":\n\n");
+            ipcList.clear();
 
             if (packageInfo.services != null) {
-                ipcList.append("Services:\n");
                 for (ServiceInfo serviceInfo : packageInfo.services) {
                     if (serviceInfo.exported) {
-                        ipcList.append(serviceInfo.name).append("\n");
+                        ipcList.add(serviceInfo.name);
                     }
                 }
-                ipcList.append("\n");
             }
 
             if (packageInfo.activities != null) {
-                ipcList.append("Activities:\n");
                 for (ActivityInfo activityInfo : packageInfo.activities) {
-                    if (activityInfo.exported  && !(activityInfo.name.contains("com.android.app.MainActivity"))) {
-                        ipcList.append(activityInfo.name).append("\n");
+                    if (activityInfo.exported && !(activityInfo.name.contains("com.android.app.MainActivity"))) {
+                        ipcList.add(activityInfo.name);
                     }
                 }
-                ipcList.append("\n");
             }
 
             if (packageInfo.providers != null) {
-                ipcList.append("Content Providers:\n");
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
-                        ipcList.append(providerInfo.name).append("\n");
+                        ipcList.add(providerInfo.name);
                     }
                 }
-                ipcList.append("\n");
             }
 
             if (packageInfo.receivers != null) {
-                ipcList.append("Broadcast Receivers:\n");
                 for (ActivityInfo receiverInfo : packageInfo.receivers) {
                     if (receiverInfo.exported) {
-                        ipcList.append(receiverInfo.name).append("\n");
+                        ipcList.add(receiverInfo.name);
                     }
                 }
-                ipcList.append("\n");
             }
 
-            textViewApkInfo.setText(ipcList.toString());
+            ((ArrayAdapter) listViewIPC.getAdapter()).notifyDataSetChanged();
 
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
