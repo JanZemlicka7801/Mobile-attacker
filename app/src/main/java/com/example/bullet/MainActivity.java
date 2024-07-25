@@ -13,7 +13,6 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         btnFetchIPC.setOnClickListener(view -> {
             String packageName = editTextPackageName.getText().toString().trim();
             if (!packageName.isEmpty()) {
-                fetchIPCList(packageName);
+                fetchExportedIPCList(packageName);
             } else {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
             }
@@ -136,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void fetchIPCList(String packageName) {
+    private void fetchExportedIPCList(String packageName) {
         PackageManager packageManager = getPackageManager();
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
@@ -144,12 +143,14 @@ public class MainActivity extends AppCompatActivity {
                             PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
 
             StringBuilder ipcList = new StringBuilder();
-            ipcList.append("IPC Components of ").append(packageName).append(":\n\n");
+            ipcList.append("Exported IPC Components of ").append(packageName).append(":\n\n");
 
             if (packageInfo.services != null) {
                 ipcList.append("Services:\n");
                 for (ServiceInfo serviceInfo : packageInfo.services) {
-                    ipcList.append(serviceInfo.name).append("\n");
+                    if (serviceInfo.exported) {
+                        ipcList.append(serviceInfo.name).append("\n");
+                    }
                 }
                 ipcList.append("\n");
             }
@@ -157,7 +158,9 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.activities != null) {
                 ipcList.append("Activities:\n");
                 for (ActivityInfo activityInfo : packageInfo.activities) {
-                    ipcList.append(activityInfo.name).append("\n");
+                    if (activityInfo.exported) {
+                        ipcList.append(activityInfo.name).append("\n");
+                    }
                 }
                 ipcList.append("\n");
             }
@@ -165,7 +168,9 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.providers != null) {
                 ipcList.append("Content Providers:\n");
                 for (ProviderInfo providerInfo : packageInfo.providers) {
-                    ipcList.append(providerInfo.name).append("\n");
+                    if (providerInfo.exported) {
+                        ipcList.append(providerInfo.name).append("\n");
+                    }
                 }
                 ipcList.append("\n");
             }
@@ -173,7 +178,9 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.receivers != null) {
                 ipcList.append("Broadcast Receivers:\n");
                 for (ActivityInfo receiverInfo : packageInfo.receivers) {
-                    ipcList.append(receiverInfo.name).append("\n");
+                    if (receiverInfo.exported) {
+                        ipcList.append(receiverInfo.name).append("\n");
+                    }
                 }
                 ipcList.append("\n");
             }
