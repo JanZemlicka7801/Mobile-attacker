@@ -2,12 +2,15 @@ package com.example.bullet;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.loader.content.CursorLoader;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +33,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "AppExtractor";
     private static final int PERMISSION_REQUEST_CODE = 1;
+    private static final String[] REQUIRED_PERMISSIONS = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            "com.fineco.it.permission.PUSH_PROVIDER",
+            "com.fineco.it.permission.PUSH_WRITE_PROVIDER"
+    };
+
     private RecyclerView recyclerViewIPC;
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
@@ -64,12 +75,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                            != PackageManager.PERMISSION_GRANTED) {
+            ArrayList<String> permissionsToRequest = new ArrayList<>();
+            for (String permission : REQUIRED_PERMISSIONS) {
+                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsToRequest.add(permission);
+                }
+            }
+            if (!permissionsToRequest.isEmpty()) {
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE},
+                        permissionsToRequest.toArray(new String[0]),
                         PERMISSION_REQUEST_CODE);
             }
         }
@@ -85,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
-                    if (activityInfo.exported) {
+                    if (activityInfo.exported && !(activityInfo.name.contains("MainActivity"))) {
                         ipcList.add("Activity: " + activityInfo.name);
                     }
                 }
@@ -102,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             if (packageInfo.providers != null) {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
-                        ipcList.add("Provider: " + providerInfo.name);
+                        ipcList.add("Provider: " + providerInfo.authority);
                     }
                 }
             }
@@ -130,6 +144,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (selectedItem.startsWith("Service: ")) {
             String serviceName = selectedItem.replace("Service: ", "");
             showLaunchOptions(currentPackageName, serviceName, "service");
+        } else if (selectedItem.startsWith("Provider: ")) {
+            String providerAuthority = selectedItem.replace("Provider: ", "");
+            queryContentProvider(providerAuthority);
         } else {
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
             // Further actions for other IPC components can be added here
@@ -137,17 +154,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLaunchOptions(String packageName, String componentName, String type) {
-        // Show options to the user to choose how to launch the component
         if (type.equals("activity")) {
             String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
             new AlertDialog.Builder(this)
                     .setTitle("Launch Options")
                     .setItems(options, (dialog, which) -> {
                         if (which == 0) {
-                            // Launch activity without action and category
                             launchActivity(packageName, componentName);
                         } else {
-                            // Launch activity with action and category
                             promptForActionAndCategory(packageName, componentName, "activity");
                         }
                     })
@@ -158,18 +172,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void promptForActionAndCategory(String packageName, String componentName, String type) {
-        // Create an alert dialog with input fields for action and category
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Action and Category");
 
-        // Set up the input fields
         EditText inputAction = new EditText(this);
         inputAction.setHint("Enter action (e.g., VIEW)");
 
         EditText inputCategory = new EditText(this);
         inputCategory.setHint("Enter category (e.g., DEFAULT)");
 
-        // Use a vertical LinearLayout to hold the EditTexts
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
         layout.addView(inputAction);
@@ -177,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
 
         builder.setView(layout);
 
-        // Set up the buttons
         builder.setPositiveButton("OK", (dialog, which) -> {
             String action = inputAction.getText().toString().trim();
             String category = inputCategory.getText().toString().trim();
@@ -221,42 +231,78 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void promptForServiceParameters(String packageName, String serviceName) {
-        // Create an alert dialog with input fields for extras
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Service Parameters");
 
-        // Set up the input fields
-        EditText inputData = new EditText(this);
-        inputData.setHint("Enter data (e.g., my data)");
+        EditText inputAction = new EditText(this);
+        inputAction.setHint("Enter action (e.g., com.google.firebase.MESSAGING_EVENT)");
 
-        // Use a vertical LinearLayout to hold the EditText
+        EditText inputData = new EditText(this);
+        inputData.setHint("Enter data (optional)");
+
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.addView(inputAction);
         layout.addView(inputData);
 
         builder.setView(layout);
 
-        // Set up the buttons
         builder.setPositiveButton("OK", (dialog, which) -> {
+            String action = inputAction.getText().toString().trim();
             String data = inputData.getText().toString().trim();
-            launchServiceWithExtras(packageName, serviceName, data);
+            launchServiceWithAction(packageName, serviceName, action, data);
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
 
-    private void launchServiceWithExtras(String packageName, String serviceName, String data) {
+    private void launchServiceWithAction(String packageName, String serviceName, String action, String data) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, serviceName));
+            if (!action.isEmpty()) {
+                intent.setAction(action);
+            }
             if (!data.isEmpty()) {
                 intent.putExtra("data", data);
             }
-            startService(intent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to launch service with data: " + serviceName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to launch service with action: " + serviceName, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void queryContentProvider(String authority) {
+        // Queries the UserDictionary and returns results
+        Cursor cursor = null;
+
+        try {
+             cursor = getContentResolver().query(Uri.parse("content://" + authority), null, null, null, null, null);                // The sort order for the returned rows
+
+            if (cursor != null && cursor.moveToFirst()) {
+                String[] columnNames = cursor.getColumnNames();
+                do {
+                    StringBuilder rowData = new StringBuilder();
+                    for (String columnName : columnNames){
+                        int columnIndex = cursor.getColumnIndex(columnName);
+                        String columnValue = cursor.getString(columnIndex);
+                        rowData.append(columnName).append(": ").append(columnValue).append(", ");
+                    }
+                    Log.d("ContentProviderQuery", rowData.toString());
+                } while (cursor.moveToNext());
+            }
+        }catch (Exception e){
+            Log.e("ContentProviderQuery", "Query failed", e);
+        } finally {
+            if (cursor != null){
+                cursor.close();
+            }
         }
     }
 
