@@ -2,7 +2,6 @@ package com.example.bullet;
 
 import android.Manifest;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -23,7 +22,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.loader.content.CursorLoader;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -129,11 +127,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            ipcAdapter.updateIPCList(ipcList);
+            runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
 
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Package not found", Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> Toast.makeText(this, "Package not found", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -279,17 +277,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void queryContentProvider(String authority) {
-        // Queries the UserDictionary and returns results
         Cursor cursor = null;
-
         try {
-             cursor = getContentResolver().query(Uri.parse("content://" + authority), null, null, null, null, null);                // The sort order for the returned rows
-
+            cursor = getContentResolver().query(Uri.parse("content://" + authority), null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 String[] columnNames = cursor.getColumnNames();
                 do {
                     StringBuilder rowData = new StringBuilder();
-                    for (String columnName : columnNames){
+                    for (String columnName : columnNames) {
                         int columnIndex = cursor.getColumnIndex(columnName);
                         String columnValue = cursor.getString(columnIndex);
                         rowData.append(columnName).append(": ").append(columnValue).append(", ");
@@ -297,10 +292,10 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("ContentProviderQuery", rowData.toString());
                 } while (cursor.moveToNext());
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             Log.e("ContentProviderQuery", "Query failed", e);
         } finally {
-            if (cursor != null){
+            if (cursor != null) {
                 cursor.close();
             }
         }
