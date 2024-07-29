@@ -1,4 +1,4 @@
-    package com.example.bullet;
+package com.example.bullet;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +25,7 @@ public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
 
     public void updateIPCList(ArrayList<String> ipcList) {
         this.ipcList = ipcList;
-        notifyDataSetChanged();
+        notifyDataSetChanged();  // Consider using DiffUtil for better performance with large lists
     }
 
     @Override
@@ -37,8 +37,10 @@ public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         String item = ipcList.get(position);
-        holder.textView.setText(item);
-        holder.itemView.setOnClickListener(v -> onItemClickListener.onItemClick(item));
+        if (item != null) {
+            holder.textView.setText(item);
+            holder.itemView.setOnClickListener(v -> onItemClickListener.onItemClick(item));
+        }
     }
 
     @Override
