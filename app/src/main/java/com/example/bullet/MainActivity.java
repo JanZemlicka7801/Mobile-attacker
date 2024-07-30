@@ -279,7 +279,8 @@ public class MainActivity extends AppCompatActivity {
     private void queryContentProvider(String authority) {
         Cursor cursor = null;
         try {
-            cursor = getContentResolver().query(Uri.parse("content://" + authority), null, null, null, null);
+            Uri authority1 = Uri.parse("content://com.elearnsecurity.injectme.provider.CredentialProvider/credentials");
+            cursor = getContentResolver().query(authority1, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 String[] columnNames = cursor.getColumnNames();
                 do {
@@ -300,6 +301,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
