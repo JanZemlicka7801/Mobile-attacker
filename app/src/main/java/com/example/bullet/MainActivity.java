@@ -276,6 +276,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void sendBroadcast(String inputIntent, String key, String value){
+        // Create an Intent with the action string the target receiver listens for
+        Intent intent = new Intent(inputIntent);
+
+        // Add any extras the target receiver might expect
+        intent.putExtra(key, value);
+
+        // Log the actual process and its permission
+        Log.d(TAG, "I am sending a broadcast with action " + inputIntent);
+
+        // Sends a broadcast
+        sendBroadcast(intent);
+    }
+
+    private void sendBroadcast(String inputIntent, String receiverPermission, String key, String value){
+        // Create an Intent with the action string the target receiver listens for
+        Intent intent = new Intent(inputIntent);
+
+        // Add any extras the target receiver might expect
+        intent.putExtra(key, value);
+
+        // Log the actual process and its permission
+        Log.d(TAG, "I am sending a broadcast with action " + inputIntent + " with a permission " + receiverPermission);
+
+        // Sends a broadcast
+        sendBroadcast(intent, receiverPermission);
+    }
+
     private void queryContentProvider(String authority) {
         Cursor cursor = null;
         try {
