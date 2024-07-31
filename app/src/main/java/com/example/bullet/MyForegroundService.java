@@ -37,9 +37,6 @@ public class MyForegroundService extends Service {
 
         startForeground(1, notification);
 
-        // Do heavy work on a background thread
-        // stopSelf();
-
         return START_NOT_STICKY;
     }
 
