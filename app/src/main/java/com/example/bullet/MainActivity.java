@@ -276,6 +276,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    ///////////////////////////////////////////////BROADCASTS/////////////////////////////////////////////////////////////////
+
+    private void promptForBroadcastPermissionParameters(String receiverName) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Broadcast Parameters");
+
+        EditText inputKey = new EditText(this);
+        inputKey.setHint("Enter key (optional)");
+
+        EditText inputValue = new EditText(this);
+        inputValue.setHint("Enter value (optional)");
+
+        EditText inputPermissions = new EditText(this);
+        inputPermissions.setHint("Enter permissions (optional)");
+
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.addView(inputKey);
+        layout.addView(inputValue);
+        layout.addView(inputPermissions);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String key = inputKey.getText().toString().trim();
+            String value = inputValue.getText().toString().trim();
+            String permission = inputPermissions.getText().toString().trim();
+            if (permission.isEmpty()){
+                sendBroadcast(receiverName, key, value);
+            } else {
+                sendBroadcast(receiverName, permission, key, value);
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
     private void sendBroadcast(String inputIntent, String key, String value){
         // Create an Intent with the action string the target receiver listens for
         Intent intent = new Intent(inputIntent);
