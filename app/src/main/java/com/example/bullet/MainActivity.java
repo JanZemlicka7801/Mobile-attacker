@@ -145,9 +145,11 @@ public class MainActivity extends AppCompatActivity {
         } else if (selectedItem.startsWith("Provider: ")) {
             String providerAuthority = selectedItem.replace("Provider: ", "");
             queryContentProvider(providerAuthority);
+        } else if (selectedItem.startsWith("Receiver: ")) {
+            String receiverName = selectedItem.replace("Receiver: ", "");
+            promptForBroadcastPermissionParameters(receiverName);
         } else {
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
-            // Further actions for other IPC components can be added here
         }
     }
 
@@ -319,10 +321,12 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(inputIntent);
 
         // Add any extras the target receiver might expect
-        intent.putExtra(key, value);
+        if (!key.isEmpty() && !value.isEmpty()) {
+            intent.putExtra(key, value);
+        }
 
         // Log the actual process and its permission
-        Log.d(TAG, "I am sending a broadcast with action " + inputIntent);
+        Log.d(TAG, "Sending broadcast with action: " + inputIntent);
 
         // Sends a broadcast
         sendBroadcast(intent);
@@ -333,20 +337,24 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(inputIntent);
 
         // Add any extras the target receiver might expect
-        intent.putExtra(key, value);
+        if (!key.isEmpty() && !value.isEmpty()) {
+            intent.putExtra(key, value);
+        }
 
         // Log the actual process and its permission
-        Log.d(TAG, "I am sending a broadcast with action " + inputIntent + " with a permission " + receiverPermission);
+        Log.d(TAG, "Sending broadcast with action: " + inputIntent + " with permission: " + receiverPermission);
 
         // Sends a broadcast
         sendBroadcast(intent, receiverPermission);
     }
 
+    ///////////////////////////////////////////////PROVIDERS//////////////////////////////////////////////////////////
+
     private void queryContentProvider(String authority) {
         Cursor cursor = null;
         try {
-            Uri authority1 = Uri.parse("content://com.elearnsecurity.injectme.provider.CredentialProvider/credentials");
-            cursor = getContentResolver().query(authority1, null, null, null, null);
+            Uri authorityUri = Uri.parse("content://" + authority);
+            cursor = getContentResolver().query(authorityUri, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 String[] columnNames = cursor.getColumnNames();
                 do {
@@ -367,8 +375,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
