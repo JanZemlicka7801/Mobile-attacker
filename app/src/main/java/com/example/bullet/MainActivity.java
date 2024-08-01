@@ -171,6 +171,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //////////////////////////////////////////ACTIVITIES////////////////////////////////////////////
+
     private void promptForActionAndCategory(String packageName, String componentName, String type) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Action and Category");
@@ -230,6 +232,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //////////////////////////////////////Services//////////////////////////////////////////////////
+
     private void promptForServiceParameters(String packageName, String serviceName) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Service Parameters");
@@ -257,7 +261,8 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    private void launchServiceWithAction(String packageName, String serviceName, String action, String data) {
+    private void launchServiceWithAction(String packageName, String serviceName, String action,
+                                         String data) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, serviceName));
@@ -353,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
     private void queryContentProvider(String authority) {
         Cursor cursor = null;
         try {
-            Uri authorityUri = Uri.parse("content://" + authority);
+            Uri authorityUri = Uri.parse("content://" + authority + "/*");
             cursor = getContentResolver().query(authorityUri, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 String[] columnNames = cursor.getColumnNames();
