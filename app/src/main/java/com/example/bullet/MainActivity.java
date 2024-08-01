@@ -119,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
                         ipcList.add("Provider: " + providerInfo.authority);
+                        discoverContentProviderPaths(providerInfo.authority); // Discover paths
                     }
                 }
             }
@@ -139,6 +140,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void discoverContentProviderPaths(String authority) {
+        String[] commonPaths = {"data", "items", "entries", "all", "list", "credentials", "user", "users"};
+        for (String path : commonPaths) {
+            queryContentProvider(authority, path);
+        }
+    }
+
+    private void queryContentProvider(String authority, String path) {
+        Cursor cursor = null;
+        try {
+            Uri authorityUri = Uri.parse("content://" + authority + "/" + path);
+            cursor = getContentResolver().query(authorityUri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                String[] columnNames = cursor.getColumnNames();
+                do {
+                    StringBuilder rowData = new StringBuilder();
+                    for (String columnName : columnNames) {
+                        int columnIndex = cursor.getColumnIndex(columnName);
+                        String columnValue = cursor.getString(columnIndex);
+                        rowData.append(columnName).append(": ").append(columnValue).append(", ");
+                    }
+                    Log.d("ContentProviderQuery", "Path: " + path + " - " + rowData.toString());
+                } while (cursor.moveToNext());
+            } else {
+                Log.e("ContentProviderQuery", "No data found for path: " + path + " for authority: " + authority);
+            }
+        } catch (IllegalArgumentException e) {
+            Log.e("ContentProviderQuery", "Path not found: " + path);
+        } catch (Exception e) {
+            Log.e("ContentProviderQuery", "Query failed for authority: " + authority + " on path: " + path, e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
     private void onItemClick(String selectedItem) {
         if (selectedItem.startsWith("Activity: ")) {
             String activityName = selectedItem.replace("Activity: ", "");
@@ -148,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
             showLaunchOptions(currentPackageName, serviceName, "service");
         } else if (selectedItem.startsWith("Provider: ")) {
             String providerAuthority = selectedItem.replace("Provider: ", "");
-            queryContentProvider(providerAuthority);
+            queryContentProvider(providerAuthority, "/");  // Try querying with root path
         } else if (selectedItem.startsWith("Receiver: ")) {
             String receiverName = selectedItem.replace("Receiver: ", "");
             promptForBroadcastPermissionParameters(receiverName);
@@ -358,49 +396,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     ///////////////////////////////////////////////PROVIDERS//////////////////////////////////////////////////////////
-
-    private void queryContentProvider(String authority) {
-        Cursor cursor = null;
-        try {
-            Uri authorityUri = Uri.parse("content://" + authority + "/*");
-            cursor = getContentResolver().query(authorityUri, null, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                String[] columnNames = cursor.getColumnNames();
-                do {
-                    StringBuilder rowData = new StringBuilder();
-                    for (String columnName : columnNames) {
-                        int columnIndex = cursor.getColumnIndex(columnName);
-                        String columnValue = cursor.getString(columnIndex);
-                        rowData.append(columnName).append(": ").append(columnValue).append(", ");
-                    }
-                    Log.d("ContentProviderQuery", rowData.toString());
-                } while (cursor.moveToNext());
-            }
-        } catch (Exception e) {
-            Log.e("ContentProviderQuery", "Query failed for authority: " + authority, e);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-    }
-
-    private void testContentProviderPaths() {
-        String[] files = {
-                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/res/R.raw.words.txt"
-        };
-
-        for (String filePath : files){
-            try(BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)))) {
-                String path;
-                while ((path = reader.readLine()) != null){
-                    queryContentProvider(path);
-                }
-            } catch (IOException e) {
-                Log.e("ContentProviderTest", "Failed to read file: " + filePath, e);
-            }
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
