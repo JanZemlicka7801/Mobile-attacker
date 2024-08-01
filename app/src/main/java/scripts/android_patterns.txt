@@ -1,0 +1,14 @@
+users
+credentials
+accounts
+tokens
+data
+records
+files
+databases
+shared_prefs
+cache
+media
+contacts
+downloads
+settings
