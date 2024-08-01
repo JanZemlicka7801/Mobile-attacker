@@ -1,6 +1,0 @@
-default
-home
-index
-menu
-main
-start

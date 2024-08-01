@@ -381,6 +381,48 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void testContentProviderPaths() {
+        String[] files = {
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/alphanum_case.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/alphanum_case_extra.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/apache.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/big.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/catala.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/cgis.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/char.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/coldfusion.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/common.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/common_pass.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/double_uri_hex.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/domino.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/euskera.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/extensions_common.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/fatwire.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/fatwire_pagenames.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/frontpage.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/iis.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/indexes.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/iplanet.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/jrun.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/mutations_common.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/names.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/netware.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/oas.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/sharepoint.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/small.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/spanish.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/sunas.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/test.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/test_ext.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/tomcat.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/unicode.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/uri_hex.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/vignette.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/weblogic.txt",
+                "/home/janzemlicka/AndroidStudioProjects/Bullet/app/src/main/java/wordlists/websphere.txt"
+        };
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
