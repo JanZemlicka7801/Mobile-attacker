@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.e("ContentProviderQuery", "Query failed", e);
+            Log.e("ContentProviderQuery", "Query failed for authority: " + authority, e);
         } finally {
             if (cursor != null) {
                 cursor.close();
