@@ -26,9 +26,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -119,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
                         ipcList.add("Provider: " + providerInfo.authority);
-                        discoverContentProviderPaths(providerInfo.authority); // Discover paths
                     }
                 }
             }
@@ -141,8 +139,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void discoverContentProviderPaths(String authority) {
-        String[] commonPaths = {"data", "items", "entries", "all", "list", "credentials", "user", "users"};
-        for (String path : commonPaths) {
+        ArrayList<String> commandPaths = new ArrayList<>();
+        try{
+            BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.words)));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                commandPaths.add(line.trim());
+            }
+            reader.close();
+        } catch (IOException e) {
+            Log.e("ContentProviderQuery","No such a path was found for the file: " + authority);
+        }
+
+        for(String path : commandPaths){
             queryContentProvider(authority, path);
         }
     }
@@ -167,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("ContentProviderQuery", "No data found for path: " + path + " for authority: " + authority);
             }
         } catch (IllegalArgumentException e) {
-            Log.e("ContentProviderQuery", "Path not found: " + path);
+            Log.w("ContentProviderQuery", "Path not found: " + path + " for authority: " + authority);
         } catch (Exception e) {
             Log.e("ContentProviderQuery", "Query failed for authority: " + authority + " on path: " + path, e);
         } finally {
@@ -186,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
             showLaunchOptions(currentPackageName, serviceName, "service");
         } else if (selectedItem.startsWith("Provider: ")) {
             String providerAuthority = selectedItem.replace("Provider: ", "");
-            queryContentProvider(providerAuthority, "/");  // Try querying with root path
+            discoverContentProviderPaths(providerAuthority); // Discover paths on click
         } else if (selectedItem.startsWith("Receiver: ")) {
             String receiverName = selectedItem.replace("Receiver: ", "");
             promptForBroadcastPermissionParameters(receiverName);
