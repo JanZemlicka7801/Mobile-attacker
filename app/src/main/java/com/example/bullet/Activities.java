@@ -8,7 +8,7 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
 
-public class Activities extends MainActivity {
+public class Activities {
 
     public void promptForActionAndCategory(Context context, String packageName, String componentName, String type) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -39,33 +39,32 @@ public class Activities extends MainActivity {
         builder.show();
     }
 
-    void launchActivity(Context context, String packageName, String activityName) {
+    public void launchActivity(Context context, String packageName, String activityName) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } catch (Exception e) {
-            Log.e("Activities", "Failed to launch activity : " + activityName);
+            Log.e("Activities", "Failed to launch activity: " + activityName, e);
         }
     }
 
-    public void showActionOptions(String packageName, String componentName) {
+    public void showActionOptions(Context context, String packageName, String componentName) {
         String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(context)
                 .setTitle("Launch Options")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
-                        launchActivity(this, packageName, componentName);
+                        launchActivity(context, packageName, componentName);
                     } else {
-                        promptForActionAndCategory(this, packageName, componentName, "activity");
+                        promptForActionAndCategory(context, packageName, componentName, "activity");
                     }
                 })
                 .show();
     }
 
-    /* Will launch an activity with extra action and category */
-    private void launchActivityWithActionAndCategory(Context context, String packageName, String activityName, String action, String category) {
+    public void launchActivityWithActionAndCategory(Context context, String packageName, String activityName, String action, String category) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
@@ -78,7 +77,7 @@ public class Activities extends MainActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } catch (Exception e) {
-            Log.e("Activities", "Failed to launch activity with action and category: " + activityName);
+            Log.e("Activities", "Failed to launch activity with action and category: " + activityName, e);
         }
     }
 }

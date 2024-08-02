@@ -129,25 +129,30 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
 
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Main", "Package not found");
+            Log.e("Main", "Package not found", e);
         }
     }
 
     private void onItemClick(String selectedItem) {
-        if (selectedItem.startsWith("Activity: ")) {
-            String activityName = selectedItem.replace("Activity: ", "");
-            activities.showActionOptions(currentPackageName, activityName);
-        } else if (selectedItem.startsWith("Service: ")) {
-            String serviceName = selectedItem.replace("Service: ", "");
-            services.promptForServiceParameters(currentPackageName, serviceName); // Handle services
-        } else if (selectedItem.startsWith("Provider: ")) {
-            String providerAuthority = selectedItem.replace("Provider: ", "");
-            providers.discoverContentProviderPaths(providerAuthority); // Discover paths on click
-        } else if (selectedItem.startsWith("Receiver: ")) {
-            String receiverName = selectedItem.replace("Receiver: ", "");
-            broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
-        } else {
-            Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+        try {
+            if (selectedItem.startsWith("Activity: ")) {
+                String activityName = selectedItem.replace("Activity: ", "");
+                activities.showActionOptions(this, currentPackageName, activityName);
+            } else if (selectedItem.startsWith("Service: ")) {
+                String serviceName = selectedItem.replace("Service: ", "");
+                services.promptForServiceParameters(currentPackageName, serviceName);
+            } else if (selectedItem.startsWith("Provider: ")) {
+                String providerAuthority = selectedItem.replace("Provider: ", "");
+                providers.discoverContentProviderPaths(providerAuthority);
+            } else if (selectedItem.startsWith("Receiver: ")) {
+                String receiverName = selectedItem.replace("Receiver: ", "");
+                broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
+            } else {
+                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error handling item click", e);
+            Toast.makeText(this, "Error handling item click", Toast.LENGTH_SHORT).show();
         }
     }
 
