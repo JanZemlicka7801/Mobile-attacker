@@ -1,5 +1,6 @@
 package com.example.bullet;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
@@ -11,26 +12,36 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class ContentProviders extends MainActivity{
+public class ContentProviders {
 
-    void discoverContentProviderPaths(String authority) {
+    private final Context context;
+
+    public ContentProviders(Context context) {
+        this.context = context;
+    }
+
+    public void discoverContentProviderPaths(String authority) {
         new Thread(() -> {
-            File outputFile = new File(getExternalFilesDir(null), "found_paths.txt");
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.words)));
+            File outputFile = new File(context.getExternalFilesDir(null), "found_paths_second.txt");
+            //TODO text file needs to be cleaned before writing inside
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.words)));
                  BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, true))) {
 
                 int counter = 0;
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String path = line.trim();
-                    String result = queryContentProvider(authority, path);
-                    if (result != null) {
-                        counter += 1;
-                        writer.write(result);
+                    if (!path.contains("/")) {
+                        path = authority + "/" + path;
+                    }
+                    boolean isAccessible = isPathAccessible(authority, path);
+                    counter += 1;
+                    if (isAccessible) {
+                        writer.write(path);
                         writer.newLine();
                     }
-                    if (counter == 10000) {
-                        Log.e("", String.valueOf(counter));
+                    if (counter % 10000 == 0) {
+                        Log.w("Content Receivers", "Processed " + counter + " paths");
                     }
                 }
             } catch (IOException e) {
@@ -39,24 +50,12 @@ public class ContentProviders extends MainActivity{
         }).start();
     }
 
-
-    private String queryContentProvider(String authority, String path) {
+    private boolean isPathAccessible(String authority, String path) {
         Cursor cursor = null;
         try {
-            Uri authorityUri = Uri.parse("content://" + authority + "/" + path);
-            cursor = getContentResolver().query(authorityUri, null, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                StringBuilder rowData = new StringBuilder();
-                String[] columnNames = cursor.getColumnNames();
-                do {
-                    for (String columnName : columnNames) {
-                        int columnIndex = cursor.getColumnIndex(columnName);
-                        String columnValue = cursor.getString(columnIndex);
-                        rowData.append(columnName).append(": ").append(columnValue).append(", ");
-                    }
-                } while (cursor.moveToNext());
-                return "Path: " + path + " - " + rowData;
-            }
+            Uri authorityUri = Uri.parse("content://" + path);
+            cursor = context.getContentResolver().query(authorityUri, null, null, null, null);
+            return cursor != null && cursor.moveToFirst();
         } catch (IllegalArgumentException e) {
             // Minimize logging for expected exceptions
         } catch (Exception e) {
@@ -66,6 +65,6 @@ public class ContentProviders extends MainActivity{
                 cursor.close();
             }
         }
-        return null;
+        return false;
     }
 }

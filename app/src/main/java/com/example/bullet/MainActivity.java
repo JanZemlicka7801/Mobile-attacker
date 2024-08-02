@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private Broadcasts broadcasts;
     private ContentProviders providers;
     private Activities activities;
-    private Services services; // Added services object
+    private Services services;
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
     private String currentPackageName;
@@ -46,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         activities = new Activities();
         broadcasts = new Broadcasts();
-        providers = new ContentProviders();
-        services = new Services(); // Initialize services
+        services = new Services();
 
         requestPermissions();
 
@@ -70,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
             }
         });
+
+        providers = new ContentProviders(this); // Initialize providers after context is valid
     }
 
     private void requestPermissions() {
