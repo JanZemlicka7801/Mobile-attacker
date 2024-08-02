@@ -39,7 +39,7 @@ public class Activities extends MainActivity {
         builder.show();
     }
 
-    private void launchActivity(Context context, String packageName, String activityName) {
+    void launchActivity(Context context, String packageName, String activityName) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, activityName));
