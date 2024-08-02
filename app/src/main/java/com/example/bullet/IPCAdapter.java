@@ -1,10 +1,12 @@
 package com.example.bullet;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
 
     private ArrayList<String> ipcList;
-    private OnItemClickListener onItemClickListener;
+    private final OnItemClickListener onItemClickListener;
 
     public interface OnItemClickListener {
         void onItemClick(String selectedItem);
@@ -23,11 +25,13 @@ public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
         this.onItemClickListener = onItemClickListener;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void updateIPCList(ArrayList<String> ipcList) {
         this.ipcList = ipcList;
         notifyDataSetChanged();  // Consider using DiffUtil for better performance with large lists
     }
 
+    @NonNull
     @Override
     public IPCAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
@@ -35,7 +39,7 @@ public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String item = ipcList.get(position);
         if (item != null) {
             holder.textView.setText(item);
