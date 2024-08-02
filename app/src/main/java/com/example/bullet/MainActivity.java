@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private Broadcasts broadcasts;
     private ContentProviders providers;
     private Activities activities;
+    private Services services; // Added services object
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
     private String currentPackageName;
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         activities = new Activities();
         broadcasts = new Broadcasts();
         providers = new ContentProviders();
+        services = new Services(); // Initialize services
 
         requestPermissions();
 
@@ -135,9 +137,9 @@ public class MainActivity extends AppCompatActivity {
         if (selectedItem.startsWith("Activity: ")) {
             String activityName = selectedItem.replace("Activity: ", "");
             activities.showActionOptions(currentPackageName, activityName);
-
-            //TODO: need to implement services
-
+        } else if (selectedItem.startsWith("Service: ")) {
+            String serviceName = selectedItem.replace("Service: ", "");
+            services.promptForServiceParameters(currentPackageName, serviceName); // Handle services
         } else if (selectedItem.startsWith("Provider: ")) {
             String providerAuthority = selectedItem.replace("Provider: ", "");
             providers.discoverContentProviderPaths(providerAuthority); // Discover paths on click

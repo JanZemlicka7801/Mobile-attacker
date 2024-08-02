@@ -7,8 +7,8 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
 
-public class Services extends MainActivity{
-    private void promptForServiceParameters(String packageName, String serviceName) {
+public class Services extends MainActivity {
+    public void promptForServiceParameters(String packageName, String serviceName) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter Service Parameters");
 
@@ -35,8 +35,8 @@ public class Services extends MainActivity{
         builder.show();
     }
 
-    private void launchServiceWithAction(String packageName, String serviceName, String action,
-                                         String data) {
+    public void launchServiceWithAction(String packageName, String serviceName, String action,
+                                        String data) {
         try {
             Intent intent = new Intent();
             intent.setComponent(new ComponentName(packageName, serviceName));
