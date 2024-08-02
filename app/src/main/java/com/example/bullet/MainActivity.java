@@ -26,9 +26,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -139,44 +143,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void discoverContentProviderPaths(String authority) {
-        ArrayList<String> commandPaths = new ArrayList<>();
-        try{
-            BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.words)));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                commandPaths.add(line.trim());
-            }
-            reader.close();
-        } catch (IOException e) {
-            Log.e("ContentProviderQuery","No such a path was found for the file: " + authority);
-        }
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.words)));
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(new File(getExternalFilesDir(null), "found_paths.txt"), true))) {
 
-        for(String path : commandPaths){
-            queryContentProvider(authority, path);
-        }
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String path = line.trim();
+                    String result = queryContentProvider(authority, path);
+                    if (result != null) {
+                        writer.write(result);
+                        writer.newLine();
+                    }
+                }
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "FINITO", Toast.LENGTH_LONG).show());
+            } catch (IOException e) {
+                Log.e("ContentProviderQuery", "Error processing paths from file", e);
+            }
+        }).start();
     }
 
-    private void queryContentProvider(String authority, String path) {
+    private String queryContentProvider(String authority, String path) {
         Cursor cursor = null;
         try {
             Uri authorityUri = Uri.parse("content://" + authority + "/" + path);
             cursor = getContentResolver().query(authorityUri, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
+                StringBuilder rowData = new StringBuilder();
                 String[] columnNames = cursor.getColumnNames();
                 do {
-                    StringBuilder rowData = new StringBuilder();
                     for (String columnName : columnNames) {
                         int columnIndex = cursor.getColumnIndex(columnName);
                         String columnValue = cursor.getString(columnIndex);
                         rowData.append(columnName).append(": ").append(columnValue).append(", ");
                     }
-                    Log.d("ContentProviderQuery", "Path: " + path + " - " + rowData.toString());
                 } while (cursor.moveToNext());
-            } else {
-                Log.e("ContentProviderQuery", "No data found for path: " + path + " for authority: " + authority);
+                return "Path: " + path + " - " + rowData.toString();
             }
         } catch (IllegalArgumentException e) {
-            Log.w("ContentProviderQuery", "Path not found: " + path + " for authority: " + authority);
+            // Minimize logging
         } catch (Exception e) {
             Log.e("ContentProviderQuery", "Query failed for authority: " + authority + " on path: " + path, e);
         } finally {
@@ -184,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 cursor.close();
             }
         }
+        return null;
     }
 
     private void onItemClick(String selectedItem) {
