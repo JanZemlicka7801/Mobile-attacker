@@ -3,8 +3,8 @@ package com.example.bullet;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -46,11 +46,11 @@ public class Activities extends MainActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Failed to launch activity: " + activityName, Toast.LENGTH_SHORT).show();
+            Log.e("Activities", "Failed to launch activity : " + activityName);
         }
     }
 
+    /* Will launch an activity with extra action and category */
     private void launchActivityWithActionAndCategory(Context context, String packageName, String activityName, String action, String category) {
         try {
             Intent intent = new Intent();
@@ -64,8 +64,7 @@ public class Activities extends MainActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Failed to launch activity with action and category: " + activityName, Toast.LENGTH_SHORT).show();
+            Log.e("Activities", "Failed to launch activity with action and category: " + activityName);
         }
     }
 }
