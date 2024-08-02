@@ -1,15 +1,11 @@
 package com.example.bullet;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -17,25 +13,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "AppExtractor";
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static final String[] REQUIRED_PERMISSIONS = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -45,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private Broadcasts broadcasts;
+    private ContentProviders providers;
     private Activities activities;
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
@@ -57,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         activities = new Activities();
         broadcasts = new Broadcasts();
+        providers = new ContentProviders();
 
         requestPermissions();
 
@@ -138,75 +127,20 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
 
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-            runOnUiThread(() -> Toast.makeText(this, "Package not found", Toast.LENGTH_SHORT).show());
+            Log.e("Main", "Package not found");
         }
-    }
-
-    private void discoverContentProviderPaths(String authority) {
-        new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.words)));
-                 BufferedWriter writer = new BufferedWriter(new FileWriter(new File(getExternalFilesDir(null), "/home/janzemlicka/Desktop/found_paths.txt"), true))) {
-
-                int counter = 0;
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String path = line.trim();
-                    String result = queryContentProvider(authority, path);
-                    if (result != null) {
-                        counter += 1;
-                        writer.write(result);
-                        writer.newLine();
-                    }
-                    if(counter == 10000){
-                        Log.e("", String.valueOf(counter));
-                    }
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Error processing paths from file", e);
-            }
-        }).start();
-    }
-
-    private String queryContentProvider(String authority, String path) {
-        Cursor cursor = null;
-        try {
-            Uri authorityUri = Uri.parse("content://" + authority + "/" + path);
-            cursor = getContentResolver().query(authorityUri, null, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                StringBuilder rowData = new StringBuilder();
-                String[] columnNames = cursor.getColumnNames();
-                do {
-                    for (String columnName : columnNames) {
-                        int columnIndex = cursor.getColumnIndex(columnName);
-                        String columnValue = cursor.getString(columnIndex);
-                        rowData.append(columnName).append(": ").append(columnValue).append(", ");
-                    }
-                } while (cursor.moveToNext());
-                return "Path: " + path + " - " + rowData.toString();
-            }
-        } catch (IllegalArgumentException e) {
-            // Minimize logging for expected exceptions
-        } catch (Exception e) {
-            Log.e(TAG, "Query failed for authority: " + authority + " on path: " + path, e);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        return null;
     }
 
     private void onItemClick(String selectedItem) {
         if (selectedItem.startsWith("Activity: ")) {
             String activityName = selectedItem.replace("Activity: ", "");
-            showLaunchOptions(currentPackageName, activityName, "activity");
-        } else if (selectedItem.startsWith("Service: ")) {
-            String serviceName = selectedItem.replace("Service: ", "");
-            showLaunchOptions(currentPackageName, serviceName, "service");
+            activities.showActionOptions(currentPackageName, activityName);
+
+            //TODO: need to implement services
+
         } else if (selectedItem.startsWith("Provider: ")) {
             String providerAuthority = selectedItem.replace("Provider: ", "");
-            discoverContentProviderPaths(providerAuthority); // Discover paths on click
+            providers.discoverContentProviderPaths(providerAuthority); // Discover paths on click
         } else if (selectedItem.startsWith("Receiver: ")) {
             String receiverName = selectedItem.replace("Receiver: ", "");
             broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
@@ -214,73 +148,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
         }
     }
-
-    public void showLaunchOptions(String packageName, String componentName, String type) {
-        if (type.equals("activity")) {
-            String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
-            new AlertDialog.Builder(this)
-                    .setTitle("Launch Options")
-                    .setItems(options, (dialog, which) -> {
-                        if (which == 0) {
-                            activities.launchActivity(this, packageName, componentName);
-                        } else {
-                            activities.promptForActionAndCategory(this, packageName, componentName, "activity");
-                        }
-                    })
-                    .show();
-        } else if (type.equals("service")) {
-            promptForServiceParameters(packageName, componentName);
-        }
-    }
-
-    //////////////////////////////////////Services//////////////////////////////////////////////////
-
-    private void promptForServiceParameters(String packageName, String serviceName) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Service Parameters");
-
-        EditText inputAction = new EditText(this);
-        inputAction.setHint("Enter action (e.g., com.google.firebase.MESSAGING_EVENT)");
-
-        EditText inputData = new EditText(this);
-        inputData.setHint("Enter data (optional)");
-
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.addView(inputAction);
-        layout.addView(inputData);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            String action = inputAction.getText().toString().trim();
-            String data = inputData.getText().toString().trim();
-            launchServiceWithAction(packageName, serviceName, action, data);
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-        builder.show();
-    }
-
-    private void launchServiceWithAction(String packageName, String serviceName, String action,
-                                         String data) {
-        try {
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName(packageName, serviceName));
-            if (!action.isEmpty()) {
-                intent.setAction(action);
-            }
-            if (!data.isEmpty()) {
-                intent.putExtra("data", data);
-            }
-            startForegroundService(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to launch service with action: " + serviceName, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    ///////////////////////////////////////////////PROVIDERS//////////////////////////////////////////////////////////
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

@@ -50,6 +50,20 @@ public class Activities extends MainActivity {
         }
     }
 
+    public void showActionOptions(String packageName, String componentName) {
+        String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
+        new AlertDialog.Builder(this)
+                .setTitle("Launch Options")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        launchActivity(this, packageName, componentName);
+                    } else {
+                        promptForActionAndCategory(this, packageName, componentName, "activity");
+                    }
+                })
+                .show();
+    }
+
     /* Will launch an activity with extra action and category */
     private void launchActivityWithActionAndCategory(Context context, String packageName, String activityName, String action, String category) {
         try {
