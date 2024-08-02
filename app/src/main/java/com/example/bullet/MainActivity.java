@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
             "com.fineco.it.permission.PUSH_WRITE_PROVIDER"
     };
 
+    private Broadcasts broadcasts;
     private Activities activities;
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         activities = new Activities();
+        broadcasts = new Broadcasts();
 
         requestPermissions();
 
@@ -207,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
             discoverContentProviderPaths(providerAuthority); // Discover paths on click
         } else if (selectedItem.startsWith("Receiver: ")) {
             String receiverName = selectedItem.replace("Receiver: ", "");
-            promptForBroadcastPermissionParameters(receiverName);
+            broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
         } else {
             Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
         }
@@ -276,76 +278,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Failed to launch service with action: " + serviceName, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    ///////////////////////////////////////////////BROADCASTS/////////////////////////////////////////////////////////////////
-
-    private void promptForBroadcastPermissionParameters(String receiverName) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Broadcast Parameters");
-
-        EditText inputKey = new EditText(this);
-        inputKey.setHint("Enter key (optional)");
-
-        EditText inputValue = new EditText(this);
-        inputValue.setHint("Enter value (optional)");
-
-        EditText inputPermissions = new EditText(this);
-        inputPermissions.setHint("Enter permissions (optional)");
-
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.addView(inputKey);
-        layout.addView(inputValue);
-        layout.addView(inputPermissions);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            String key = inputKey.getText().toString().trim();
-            String value = inputValue.getText().toString().trim();
-            String permission = inputPermissions.getText().toString().trim();
-            if (permission.isEmpty()){
-                sendBroadcast(receiverName, key, value);
-            } else {
-                sendBroadcast(receiverName, permission, key, value);
-            }
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-        builder.show();
-    }
-
-    private void sendBroadcast(String inputIntent, String key, String value){
-        // Create an Intent with the action string the target receiver listens for
-        Intent intent = new Intent(inputIntent);
-
-        // Add any extras the target receiver might expect
-        if (!key.isEmpty() && !value.isEmpty()) {
-            intent.putExtra(key, value);
-        }
-
-        // Log the actual process and its permission
-        Log.d(TAG, "Sending broadcast with action: " + inputIntent);
-
-        // Sends a broadcast
-        sendBroadcast(intent);
-    }
-
-    private void sendBroadcast(String inputIntent, String receiverPermission, String key, String value){
-        // Create an Intent with the action string the target receiver listens for
-        Intent intent = new Intent(inputIntent);
-
-        // Add any extras the target receiver might expect
-        if (!key.isEmpty() && !value.isEmpty()) {
-            intent.putExtra(key, value);
-        }
-
-        // Log the actual process and its permission
-        Log.d(TAG, "Sending broadcast with action: " + inputIntent + " with permission: " + receiverPermission);
-
-        // Sends a broadcast
-        sendBroadcast(intent, receiverPermission);
     }
 
     ///////////////////////////////////////////////PROVIDERS//////////////////////////////////////////////////////////
