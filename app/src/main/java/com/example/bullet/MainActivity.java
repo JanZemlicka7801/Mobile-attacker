@@ -10,7 +10,6 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -45,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             "com.fineco.it.permission.PUSH_WRITE_PROVIDER"
     };
 
-    private RecyclerView recyclerViewIPC;
+    private Activities activities;
     private IPCAdapter ipcAdapter;
     private PackageManager packageManager;
     private String currentPackageName;
@@ -55,11 +54,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        activities = new Activities();
+
         requestPermissions();
 
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
         Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
-        recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
+        RecyclerView recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
 
         recyclerViewIPC.setLayoutManager(new LinearLayoutManager(this));
         ipcAdapter = new IPCAdapter(new ArrayList<>(), this::onItemClick);
@@ -79,18 +80,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ArrayList<String> permissionsToRequest = new ArrayList<>();
-            for (String permission : REQUIRED_PERMISSIONS) {
-                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                    permissionsToRequest.add(permission);
-                }
+        ArrayList<String> permissionsToRequest = new ArrayList<>();
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission);
             }
-            if (!permissionsToRequest.isEmpty()) {
-                ActivityCompat.requestPermissions(this,
-                        permissionsToRequest.toArray(new String[0]),
-                        PERMISSION_REQUEST_CODE);
-            }
+        }
+        if (!permissionsToRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    permissionsToRequest.toArray(new String[0]),
+                    PERMISSION_REQUEST_CODE);
         }
     }
 
@@ -145,20 +144,24 @@ public class MainActivity extends AppCompatActivity {
     private void discoverContentProviderPaths(String authority) {
         new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.words)));
-                 BufferedWriter writer = new BufferedWriter(new FileWriter(new File(getExternalFilesDir(null), "found_paths.txt"), true))) {
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(new File(getExternalFilesDir(null), "/home/janzemlicka/Desktop/found_paths.txt"), true))) {
 
+                int counter = 0;
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String path = line.trim();
                     String result = queryContentProvider(authority, path);
                     if (result != null) {
+                        counter += 1;
                         writer.write(result);
                         writer.newLine();
                     }
+                    if(counter == 10000){
+                        Log.e("", String.valueOf(counter));
+                    }
                 }
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "FINITO", Toast.LENGTH_LONG).show());
             } catch (IOException e) {
-                Log.e("ContentProviderQuery", "Error processing paths from file", e);
+                Log.e(TAG, "Error processing paths from file", e);
             }
         }).start();
     }
@@ -181,9 +184,9 @@ public class MainActivity extends AppCompatActivity {
                 return "Path: " + path + " - " + rowData.toString();
             }
         } catch (IllegalArgumentException e) {
-            // Minimize logging
+            // Minimize logging for expected exceptions
         } catch (Exception e) {
-            Log.e("ContentProviderQuery", "Query failed for authority: " + authority + " on path: " + path, e);
+            Log.e(TAG, "Query failed for authority: " + authority + " on path: " + path, e);
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -210,82 +213,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showLaunchOptions(String packageName, String componentName, String type) {
+    public void showLaunchOptions(String packageName, String componentName, String type) {
         if (type.equals("activity")) {
             String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
             new AlertDialog.Builder(this)
                     .setTitle("Launch Options")
                     .setItems(options, (dialog, which) -> {
                         if (which == 0) {
-                            launchActivity(packageName, componentName);
+                            activities.launchActivity(this, packageName, componentName);
                         } else {
-                            promptForActionAndCategory(packageName, componentName, "activity");
+                            activities.promptForActionAndCategory(this, packageName, componentName, "activity");
                         }
                     })
                     .show();
         } else if (type.equals("service")) {
             promptForServiceParameters(packageName, componentName);
-        }
-    }
-
-    //////////////////////////////////////////ACTIVITIES////////////////////////////////////////////
-
-    private void promptForActionAndCategory(String packageName, String componentName, String type) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Action and Category");
-
-        EditText inputAction = new EditText(this);
-        inputAction.setHint("Enter action (e.g., VIEW)");
-
-        EditText inputCategory = new EditText(this);
-        inputCategory.setHint("Enter category (e.g., DEFAULT)");
-
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.addView(inputAction);
-        layout.addView(inputCategory);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            String action = inputAction.getText().toString().trim();
-            String category = inputCategory.getText().toString().trim();
-            if (type.equals("activity")) {
-                launchActivityWithActionAndCategory(packageName, componentName, action, category);
-            }
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-        builder.show();
-    }
-
-    private void launchActivity(String packageName, String activityName) {
-        try {
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName(packageName, activityName));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to launch activity: " + activityName, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void launchActivityWithActionAndCategory(String packageName, String activityName, String action, String category) {
-        try {
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName(packageName, activityName));
-            if (!action.isEmpty()) {
-                intent.setAction(action);
-            }
-            if (!category.isEmpty()) {
-                intent.addCategory(category);
-            }
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to launch activity with action and category: " + activityName, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -329,11 +271,7 @@ public class MainActivity extends AppCompatActivity {
             if (!data.isEmpty()) {
                 intent.putExtra("data", data);
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent);
-            } else {
-                startService(intent);
-            }
+            startForegroundService(intent);
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to launch service with action: " + serviceName, Toast.LENGTH_SHORT).show();
