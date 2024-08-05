@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.content.ContentProviderClient;
-import android.os.Build;
 import android.os.RemoteException;
 
 import java.io.BufferedReader;
