@@ -27,8 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] REQUIRED_PERMISSIONS = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            "com.fineco.it.permission.PUSH_PROVIDER",
-            "com.fineco.it.permission.PUSH_WRITE_PROVIDER"
+            Manifest.permission.INTERNET
     };
 
     private Broadcasts broadcasts;
@@ -87,6 +86,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission denied: " + permissions[i], Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void fetchExportedIPCList(String packageName) {
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
@@ -130,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
 
         } catch (PackageManager.NameNotFoundException e) {
-            Toast.makeText(this, "File not found !!!", Toast.LENGTH_SHORT).show();
+            Log.e("Main", "Package not found", e);
         }
     }
 
@@ -157,15 +170,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permissions granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 }
