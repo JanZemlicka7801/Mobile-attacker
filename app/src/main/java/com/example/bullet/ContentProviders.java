@@ -17,6 +17,12 @@ import java.io.InputStreamReader;
 
 public class ContentProviders {
 
+    // To access paths
+    // adb shell
+    // su
+    // cd storage/emulated/0/Android/data/com.example.bullet/files/
+    // cat found_paths.txt
+
     private final Context context;
 
     public ContentProviders(Context context) {
