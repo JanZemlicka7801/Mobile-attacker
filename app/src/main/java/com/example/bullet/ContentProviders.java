@@ -75,6 +75,8 @@ public class ContentProviders {
             }
         } catch (IllegalArgumentException e) {
             // Suppress logging for invalid URIs to avoid cluttering logs
+        } catch (SecurityException e) {
+            // Suppress logging for security exceptions to avoid cluttering logs ('SecurityException')
         } catch (RemoteException e) {
             Log.e("Content Providers", "RemoteException querying URI: " + path, e);
         } catch (Exception e) {
