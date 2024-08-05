@@ -1,6 +1,7 @@
 package com.example.bullet;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -27,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] REQUIRED_PERMISSIONS = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.INTERNET
+            "com.fineco.it.permission.PUSH_PROVIDER",
+            "com.fineco.it.permission.PUSH_WRITE_PROVIDER"
     };
 
     private Broadcasts broadcasts;
@@ -46,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         activities = new Activities();
         broadcasts = new Broadcasts();
         services = new Services();
+        providers = new ContentProviders(this);
 
         requestPermissions();
 
@@ -68,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
             }
         });
-
-        providers = new ContentProviders(this); // Initialize providers after context is valid
     }
 
     private void requestPermissions() {
@@ -86,18 +88,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            for (int i = 0; i < permissions.length; i++) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission denied: " + permissions[i], Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-            Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show();
-        }
+    private void showPermissionDialog(String providerAuthority) {
+        new AlertDialog.Builder(this)
+                .setTitle("Permissions Confirmation")
+                .setMessage("Have you imported all needed permissions inside Manifest.xml?")
+                .setPositiveButton("OK", (dialog, which) -> providers.discoverContentProviderPaths(providerAuthority))
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private void fetchExportedIPCList(String packageName) {
@@ -157,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 services.promptForServiceParameters(currentPackageName, serviceName);
             } else if (selectedItem.startsWith("Provider: ")) {
                 String providerAuthority = selectedItem.replace("Provider: ", "");
-                providers.discoverContentProviderPaths(providerAuthority);
+                showPermissionDialog(providerAuthority);
             } else if (selectedItem.startsWith("Receiver: ")) {
                 String receiverName = selectedItem.replace("Receiver: ", "");
                 broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
@@ -170,4 +167,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permissions granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
