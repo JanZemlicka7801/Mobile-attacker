@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
 
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
     private void showPermissionDialog(String providerAuthority) {
         new AlertDialog.Builder(this)
                 .setTitle("Permissions Confirmation")
-                .setMessage("Have you imported all needed permissions inside Manifest.xml?")
+                .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
                 .setPositiveButton("OK", (dialog, which) -> providers.discoverContentProviderPaths(providerAuthority))
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
@@ -180,11 +181,24 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
     }
 
     @Override
-    public void onDiscoveryComplete() {
-        runOnUiThread(() -> new AlertDialog.Builder(this)
-                .setTitle("Discovery Complete")
-                .setMessage("Content provider path discovery is finished.")
-                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                .show());
+    public void onDiscoveryComplete(List<String> accessiblePaths) {
+        runOnUiThread(() -> {
+            StringBuilder message = new StringBuilder("Content provider path discovery is finished.\n\n");
+
+            if (!accessiblePaths.isEmpty()) {
+                message.append("Accessible paths:\n");
+                for (String path : accessiblePaths) {
+                    message.append(path).append("\n");
+                }
+            } else {
+                message.append("No accessible path has been discovered.\n");
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Discovery Complete")
+                    .setMessage(message.toString())
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
     }
 }

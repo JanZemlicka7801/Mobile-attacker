@@ -13,11 +13,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContentProviders {
 
     public interface DiscoveryCallback {
-        void onDiscoveryComplete();
+        void onDiscoveryComplete(List<String> accessiblePaths);
     }
 
     private final Context context;
@@ -31,6 +33,7 @@ public class ContentProviders {
     public void discoverContentProviderPaths(String authority) {
         new Thread(() -> {
             File outputFile = new File(context.getExternalFilesDir(null), "found_paths.txt");
+            List<String> accessiblePaths = new ArrayList<>();
             // Clear file content before writing
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false))) {
                 writer.write("");
@@ -51,13 +54,14 @@ public class ContentProviders {
                     if (isAccessible) {
                         writer.write(path);
                         writer.newLine();
+                        accessiblePaths.add(path);
                     }
                     if (counter % 10000 == 0) { // Print every 10000 lines processed
                         Log.i("Content Providers", "Processed " + counter + " lines.");
                     }
                 }
                 Log.i("Content Providers", "Total lines processed: " + counter);
-                callback.onDiscoveryComplete(); // Notify completion
+                callback.onDiscoveryComplete(accessiblePaths); // Notify completion with accessible paths
             } catch (IOException e) {
                 Log.e("Content Providers", "Error processing paths from file", e);
             }
