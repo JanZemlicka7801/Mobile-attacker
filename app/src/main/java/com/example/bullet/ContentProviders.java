@@ -16,16 +16,16 @@ import java.io.InputStreamReader;
 
 public class ContentProviders {
 
-    // To access paths
-    // adb shell
-    // su
-    // cd storage/emulated/0/Android/data/com.example.bullet/files/
-    // cat found_paths.txt
+    public interface DiscoveryCallback {
+        void onDiscoveryComplete();
+    }
 
     private final Context context;
+    private final DiscoveryCallback callback;
 
-    public ContentProviders(Context context) {
+    public ContentProviders(Context context, DiscoveryCallback callback) {
         this.context = context;
+        this.callback = callback;
     }
 
     public void discoverContentProviderPaths(String authority) {
@@ -57,6 +57,7 @@ public class ContentProviders {
                     }
                 }
                 Log.i("Content Providers", "Total lines processed: " + counter);
+                callback.onDiscoveryComplete(); // Notify completion
             } catch (IOException e) {
                 Log.e("Content Providers", "Error processing paths from file", e);
             }
@@ -73,10 +74,8 @@ public class ContentProviders {
                 cursor = client.query(uri, null, null, null, null);
                 return cursor != null && cursor.moveToFirst();
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             // Suppress logging for invalid URIs to avoid cluttering logs
-        } catch (SecurityException e) {
-            // Suppress logging for security exceptions to avoid cluttering logs ('SecurityException')
         } catch (RemoteException e) {
             Log.e("Content Providers", "RemoteException querying URI: " + path, e);
         } catch (Exception e) {

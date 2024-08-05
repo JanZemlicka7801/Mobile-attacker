@@ -23,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static final String[] REQUIRED_PERMISSIONS = new String[]{
@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         activities = new Activities();
         broadcasts = new Broadcasts();
         services = new Services();
-        providers = new ContentProviders(this);
+        providers = new ContentProviders(this, this);
 
         requestPermissions();
 
@@ -177,5 +177,14 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @Override
+    public void onDiscoveryComplete() {
+        runOnUiThread(() -> new AlertDialog.Builder(this)
+                .setTitle("Discovery Complete")
+                .setMessage("Content provider path discovery is finished.")
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show());
     }
 }
