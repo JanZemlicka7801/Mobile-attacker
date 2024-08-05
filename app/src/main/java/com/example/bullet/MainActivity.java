@@ -97,6 +97,15 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
                 .show();
     }
 
+    private void showPermissionDialogServices(String serviceName) {
+        new AlertDialog.Builder(this)
+                .setTitle("Permissions Confirmation")
+                .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
+                .setPositiveButton("OK", (dialog, which) -> services.promptForServiceParameters(this, currentPackageName, serviceName))
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
     private void fetchExportedIPCList(String packageName) {
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
@@ -151,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
                 activities.showActionOptions(this, currentPackageName, activityName);
             } else if (selectedItem.startsWith("Service: ")) {
                 String serviceName = selectedItem.replace("Service: ", "");
-                services.promptForServiceParameters(currentPackageName, serviceName);
+                showPermissionDialogServices(serviceName);
             } else if (selectedItem.startsWith("Provider: ")) {
                 String providerAuthority = selectedItem.replace("Provider: ", "");
                 showPermissionDialog(providerAuthority);
