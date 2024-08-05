@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
 
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Main", "Package not found", e);
+            Toast.makeText(this, "File not found !!!", Toast.LENGTH_SHORT).show();
         }
     }
 
