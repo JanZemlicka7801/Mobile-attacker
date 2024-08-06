@@ -3,9 +3,12 @@ package com.example.bullet;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.content.ContentProviderClient;
 import android.os.RemoteException;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -84,10 +87,19 @@ public class ContentProviders {
                         accessiblePaths.add(path);
                     }
                     if (counter % 10000 == 0) { // Print every 10000 lines processed
+                        // Display a toast notification with the number of lines processed
+                        final int linesProcessed = counter;
+                        new Handler(Looper.getMainLooper()).post(() ->
+                                Toast.makeText(context, "Processed " + linesProcessed + " lines.", Toast.LENGTH_SHORT).show()
+                        );
                         Log.i("Content Providers", "Processed " + counter + " lines.");
                     }
                 }
                 Log.i("Content Providers", "Total lines processed: " + counter);
+                int finalCounter = counter;
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(context, "Total lines processed: " + finalCounter, Toast.LENGTH_SHORT).show()
+                );
                 callback.onDiscoveryComplete(accessiblePaths); // Notify completion with accessible paths
             } catch (IOException e) {
                 Log.e("Content Providers", "Error processing paths from file", e);
