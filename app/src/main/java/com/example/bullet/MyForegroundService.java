@@ -16,6 +16,9 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+/**
+ * MyForegroundService class to handle foreground service operations and launching other services dynamically.
+ */
 public class MyForegroundService extends Service {
 
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
@@ -26,6 +29,14 @@ public class MyForegroundService extends Service {
         return null;
     }
 
+    /**
+     * Called when the service is started. It creates a notification channel and launches the specified service.
+     *
+     * @param intent  The intent containing the parameters for the service to be launched.
+     * @param flags   Additional data about the start request.
+     * @param startId A unique integer representing this specific request to start.
+     * @return The return value indicates what semantics the system should use for the service's current started state.
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String input = intent.getStringExtra("inputExtra");
@@ -44,15 +55,20 @@ public class MyForegroundService extends Service {
         startForeground(1, notification);
 
         // Perform the actual work of the service here
+        String packageName = intent.getStringExtra("packageName");
+        String className = intent.getStringExtra("className");
         String action = intent.getStringExtra("action");
         String data = intent.getStringExtra("data");
         String extraKey = intent.getStringExtra("extraKey");
         String extraValue = intent.getStringExtra("extraValue");
-        launchService(this, action, data, extraKey, extraValue);
+        launchService(this, packageName, className, action, data, extraKey, extraValue);
 
         return START_NOT_STICKY;
     }
 
+    /**
+     * Creates a notification channel for the foreground service.
+     */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel serviceChannel = new NotificationChannel(
@@ -67,10 +83,21 @@ public class MyForegroundService extends Service {
         }
     }
 
-    private void launchService(Context context, String action, String data, String extraKey, String extraValue) {
+    /**
+     * Launches a service with the provided parameters.
+     *
+     * @param context    The context from which this method is called.
+     * @param packageName The package name of the service to be launched.
+     * @param className   The class name of the service to be launched.
+     * @param action      The action to be set for the intent.
+     * @param data        The data URI to be set for the intent.
+     * @param extraKey    The key for the extra data.
+     * @param extraValue  The value for the extra data.
+     */
+    private void launchService(Context context, String packageName, String className, String action, String data, String extraKey, String extraValue) {
         try {
             Intent serviceIntent = new Intent();
-            serviceIntent.setComponent(new ComponentName("it.realemutua.pre", "com.wix.reactnativenotifications.fcm.FcmInstanceIdListenerService"));
+            serviceIntent.setComponent(new ComponentName(packageName, className));
             if (action != null && !action.isEmpty()) {
                 serviceIntent.setAction(action);
             }
@@ -81,9 +108,9 @@ public class MyForegroundService extends Service {
                 serviceIntent.putExtra(extraKey, extraValue);
             }
             context.startService(serviceIntent);
-            Log.i("Service", "Service launched with parameters: " + serviceIntent.toString());
+            Log.i("Service", "Service launched with parameters: " + serviceIntent);
         } catch (Exception e) {
-            Log.e("Service", "Failed to launch service: com.wix.reactnativenotifications.fcm.FcmInstanceIdListenerService", e);
+            Log.e("Service", "Failed to launch service: " + packageName + "/" + className, e);
         }
     }
 }

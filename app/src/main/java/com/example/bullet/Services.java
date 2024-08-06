@@ -10,8 +10,19 @@ import android.widget.EditText;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
+/**
+ * The Services class provides methods to prompt the user for service parameters
+ * and to launch services with the specified parameters.
+ */
 public class Services {
 
+    /**
+     * Prompts the user to enter parameters for launching a service.
+     *
+     * @param context     The context from which this method is called.
+     * @param packageName The package name of the app containing the service to launch.
+     * @param serviceName The name of the service to be launched.
+     */
     public void promptForServiceParameters(Context context, String packageName, String serviceName) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Enter Service Parameters");
@@ -49,6 +60,17 @@ public class Services {
         builder.show();
     }
 
+    /**
+     * Launches a service with the provided parameters.
+     *
+     * @param context     The context from which this method is called.
+     * @param packageName The package name of the app containing the service to launch.
+     * @param serviceName The name of the service to be launched.
+     * @param action      The action to be set for the intent.
+     * @param data        The data URI to be set for the intent.
+     * @param extraKey    The key for the extra data.
+     * @param extraValue  The value for the extra data.
+     */
     private void launchService(Context context, String packageName, String serviceName, String action, String data, String extraKey, String extraValue) {
         try {
             Intent serviceIntent = new Intent();
