@@ -15,7 +15,7 @@ public class Broadcasts {
 
     /**
      * Prompts the user to enter broadcast parameters including key, value, and permissions.
-     * Displays an AlertDialog with input fields for key, value, and permissions. On confirmation, it calls sendBroadcast with the entered parameters.
+     * Function: Displays an AlertDialog with input fields for key, value, and permissions. On confirmation, it calls sendBroadcast with the entered parameters.
      *
      * @param context The context from which this method is called.
      * @param receiverName The name of the broadcast receiver.
@@ -58,7 +58,7 @@ public class Broadcasts {
 
     /**
      * Sends a broadcast without permissions.
-     * Creates an Intent with the specified action and extra data, and sends the broadcast.
+     * Function: Creates an Intent with the specified action and extra data, and sends the broadcast.
      *
      * @param context The context from which this method is called.
      * @param inputIntent The intent action string for the broadcast.
@@ -79,7 +79,7 @@ public class Broadcasts {
 
     /**
      * Sends a broadcast with permissions.
-     * Creates an Intent with the specified action and extra data, and sends the broadcast with the specified permission.
+     * Function: Creates an Intent with the specified action and extra data, and sends the broadcast with the specified permission.
      *
      * @param context The context from which this method is called.
      * @param inputIntent The intent action string for the broadcast.
