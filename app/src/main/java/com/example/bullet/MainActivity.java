@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -23,14 +25,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
 public class MainActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static final String[] REQUIRED_PERMISSIONS = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            "com.fineco.it.permission.PUSH_PROVIDER",
-            "com.fineco.it.permission.PUSH_WRITE_PROVIDER"
+            Manifest.permission.POST_NOTIFICATIONS
     };
 
     private Broadcasts broadcasts;
@@ -88,20 +90,11 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
         }
     }
 
-    private void showPermissionDialog(String providerAuthority) {
+    private void showPermissionDialog(Runnable onConfirmed) {
         new AlertDialog.Builder(this)
                 .setTitle("Permissions Confirmation")
                 .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
-                .setPositiveButton("OK", (dialog, which) -> providers.discoverContentProviderPaths(providerAuthority))
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
-    private void showPermissionDialogServices(String serviceName) {
-        new AlertDialog.Builder(this)
-                .setTitle("Permissions Confirmation")
-                .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
-                .setPositiveButton("OK", (dialog, which) -> services.promptForServiceParameters(this, currentPackageName, serviceName))
+                .setPositiveButton("OK", (dialog, which) -> onConfirmed.run())
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
@@ -160,10 +153,12 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
                 activities.showActionOptions(this, currentPackageName, activityName);
             } else if (selectedItem.startsWith("Service: ")) {
                 String serviceName = selectedItem.replace("Service: ", "");
-                showPermissionDialogServices(serviceName);
+                showPermissionDialog(
+                        () -> services.promptForServiceParameters(this, currentPackageName, serviceName));
             } else if (selectedItem.startsWith("Provider: ")) {
                 String providerAuthority = selectedItem.replace("Provider: ", "");
-                showPermissionDialog(providerAuthority);
+                showPermissionDialog(
+                        () -> providers.discoverContentProviderPaths(providerAuthority));
             } else if (selectedItem.startsWith("Receiver: ")) {
                 String receiverName = selectedItem.replace("Receiver: ", "");
                 broadcasts.promptForBroadcastPermissionParameters(this, receiverName);

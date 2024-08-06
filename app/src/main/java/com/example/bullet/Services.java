@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
 public class Services {
 
@@ -16,7 +17,7 @@ public class Services {
         builder.setTitle("Enter Service Parameters");
 
         EditText inputAction = new EditText(context);
-        inputAction.setHint("Enter action (optional)");
+        inputAction.setHint("Enter action (e.g., com.google.firebase.MESSAGING_EVENT)");
 
         EditText inputData = new EditText(context);
         inputData.setHint("Enter data (optional)");
@@ -41,31 +42,38 @@ public class Services {
             String data = inputData.getText().toString().trim();
             String extraKey = inputExtraKey.getText().toString().trim();
             String extraValue = inputExtraValue.getText().toString().trim();
-            launchServiceWithParameters(context, packageName, serviceName, action, data, extraKey, extraValue);
+            launchService(context, packageName, serviceName, action, data, extraKey, extraValue);
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
 
-    public void launchServiceWithParameters(Context context, String packageName, String serviceName,
-                                            String action, String data, String extraKey, String extraValue) {
+    private void launchService(Context context, String packageName, String serviceName, String action, String data, String extraKey, String extraValue) {
         try {
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName(packageName, serviceName));
+            Intent serviceIntent = new Intent();
+            serviceIntent.setComponent(new ComponentName(packageName, serviceName));
             if (!action.isEmpty()) {
-                intent.setAction(action);
+                serviceIntent.setAction(action);
             }
             if (!data.isEmpty()) {
-                intent.setData(Uri.parse(data));
+                serviceIntent.setData(Uri.parse(data));
             }
             if (!extraKey.isEmpty() && !extraValue.isEmpty()) {
-                intent.putExtra(extraKey, extraValue);
+                serviceIntent.putExtra(extraKey, extraValue);
             }
-            context.startService(intent);
-            Log.i("Service", "Service launched with parameters: " + intent.toString());
+
+            ContextCompat.startForegroundService(context, serviceIntent);
+
+            // Additional logging for debugging
+            Log.i("Services", "Service started with parameters:");
+            Log.i("Services", "Action: " + action);
+            Log.i("Services", "Data: " + data);
+            Log.i("Services", "Extra Key: " + extraKey);
+            Log.i("Services", "Extra Value: " + extraValue);
+
         } catch (Exception e) {
-            Log.e("Service", "Failed to launch service: " + serviceName, e);
+            Log.e("Services", "Failed to start service: " + serviceName, e);
         }
     }
 }
