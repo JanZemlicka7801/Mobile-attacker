@@ -16,20 +16,47 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The ContentProviders class provides methods to discover accessible paths
+ * for a given content provider authority.
+ */
 public class ContentProviders {
 
+    /**
+     * Interface for discovery callback to notify when content provider path discovery is complete.
+     */
     public interface DiscoveryCallback {
+        /**
+         * Called when content provider path discovery is complete.
+         *
+         * @param accessiblePaths List of accessible content provider paths.
+         */
         void onDiscoveryComplete(List<String> accessiblePaths);
     }
 
     private final Context context;
     private final DiscoveryCallback callback;
 
+    /**
+     * Constructor for ContentProviders class.
+     *
+     * @param context  The context from which this class is instantiated.
+     * @param callback The callback to notify when path discovery is complete.
+     */
     public ContentProviders(Context context, DiscoveryCallback callback) {
         this.context = context;
         this.callback = callback;
     }
 
+    /**
+     * Starts the discovery of content provider paths for the given authority.
+     * Function: * Creates a new thread to perform the path discovery.
+     *           * Clears the output file found_paths.txt before writing.
+     *           * Reads paths from a words resource file and checks if they are accessible.
+     *           * Writes accessible paths to the output file and calls the callback method with the list of accessible paths.
+     *
+     * @param authority The authority of the content provider to discover paths for.
+     */
     public void discoverContentProviderPaths(String authority) {
         new Thread(() -> {
             File outputFile = new File(context.getExternalFilesDir(null), "found_paths.txt");
@@ -68,6 +95,15 @@ public class ContentProviders {
         }).start();
     }
 
+    /**
+     * Checks if the given content provider path is accessible.
+     * Function: * Tries to query the content provider at the given path.
+     *           * Returns True if the query succeeds and returns at least one result, False otherwise.
+     *           * Handles and logs exceptions appropriately.
+     *
+     * @param path The content provider path to check.
+     * @return True if the path is accessible, false otherwise.
+     */
     private boolean isPathAccessible(String path) {
         Cursor cursor = null;
         ContentProviderClient client = null;
