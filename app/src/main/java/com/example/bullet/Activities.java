@@ -8,8 +8,20 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
 
+/**
+ * The Activities class provides methods to prompt the user for action and category,
+ * and to launch activities with or without these parameters.
+ */
 public class Activities {
 
+    /**
+     * Prompts the user to enter action and category for launching an activity.
+     *
+     * @param context The context from which this method is called.
+     * @param packageName The package name of the app containing the activity to launch.
+     * @param componentName The name of the component to be launched.
+     * @param type The type of component (e.g., "activity").
+     */
     public void promptForActionAndCategory(Context context, String packageName, String componentName, String type) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Enter Action and Category");
@@ -39,6 +51,13 @@ public class Activities {
         builder.show();
     }
 
+    /**
+     * Launches an activity without any action or category.
+     *
+     * @param context The context from which this method is called.
+     * @param packageName The package name of the app containing the activity to launch.
+     * @param activityName The name of the activity to be launched.
+     */
     public void launchActivity(Context context, String packageName, String activityName) {
         try {
             Intent intent = new Intent();
@@ -50,6 +69,13 @@ public class Activities {
         }
     }
 
+    /**
+     * Shows options for launching an activity with or without action and category.
+     *
+     * @param context The context from which this method is called.
+     * @param packageName The package name of the app containing the activity to launch.
+     * @param componentName The name of the component to be launched.
+     */
     public void showActionOptions(Context context, String packageName, String componentName) {
         String[] options = {"Launch without Action and Category", "Launch with Action and Category"};
         new AlertDialog.Builder(context)
@@ -64,6 +90,15 @@ public class Activities {
                 .show();
     }
 
+    /**
+     * Launches an activity with specified action and category.
+     *
+     * @param context The context from which this method is called.
+     * @param packageName The package name of the app containing the activity to launch.
+     * @param activityName The name of the activity to be launched.
+     * @param action The action to be set for the intent.
+     * @param category The category to be added to the intent.
+     */
     public void launchActivityWithActionAndCategory(Context context, String packageName, String activityName, String action, String category) {
         try {
             Intent intent = new Intent();

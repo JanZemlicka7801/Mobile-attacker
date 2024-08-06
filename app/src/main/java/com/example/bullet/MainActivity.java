@@ -25,9 +25,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *  The main class for the whole app Bullet.apk, responsible for managing the UI and interactions
+ *  for discovering and exploiting exported IPC components.
+ */
 @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
 public class MainActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
 
+    /**
+        Defined all the necessary constants for permission requests and member variables for
+        different components.
+     */
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static final String[] REQUIRED_PERMISSIONS = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -43,18 +51,28 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
     private PackageManager packageManager;
     private String currentPackageName;
 
+    /**
+     * Called when the activity is first created for initializing components and variables requests
+     * necessary permissions to interact with other apps and also monitor logcat.
+     *
+     * @param savedInstanceState If the activity is being  re-initialized after previously being
+     *                           being shut down this contains the data it most recently supplied.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize all the member variables
         activities = new Activities();
         broadcasts = new Broadcasts();
         services = new Services();
         providers = new ContentProviders(this, this);
 
+        // Requests necessary permissions
         requestPermissions();
 
+        // Sets up UI components
         EditText editTextPackageName = findViewById(R.id.editTextPackageName);
         Button btnFetchIPC = findViewById(R.id.btnFetchIPC);
         RecyclerView recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
@@ -65,21 +83,27 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
 
         packageManager = getPackageManager();
 
+        // Set button click listener to fetch IPC components
         btnFetchIPC.setOnClickListener(view -> {
             String packageName = editTextPackageName.getText().toString().trim();
             if (!packageName.isEmpty()) {
                 currentPackageName = packageName;
                 fetchExportedIPCList(packageName);
             } else {
-                Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT)
+                        .show();
             }
         });
     }
 
+    /**
+     *  Requests necessary permissions so the app can work properly.
+     */
     private void requestPermissions() {
         ArrayList<String> permissionsToRequest = new ArrayList<>();
         for (String permission : REQUIRED_PERMISSIONS) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager
+                    .PERMISSION_GRANTED) {
                 permissionsToRequest.add(permission);
             }
         }
@@ -90,15 +114,27 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
         }
     }
 
+    /**
+     * Shows a dialog to confirm permissions with a custom message.
+     *
+     * @param onConfirmed The action to be performed when the user confirms the dialog.
+     */
     private void showPermissionDialog(Runnable onConfirmed) {
         new AlertDialog.Builder(this)
                 .setTitle("Permissions Confirmation")
-                .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
+                .setMessage("Have you imported all needed permissions inside the AndroidManifest" +
+                        ".xml?")
                 .setPositiveButton("OK", (dialog, which) -> onConfirmed.run())
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
+    /**
+     * Fetches a list containing all exported components (activities, content providers, broadcast
+     * receivers and activities) of provided package.
+     *
+     * @param packageName The name of provided package by an user to fetch all of the components.
+     */
     private void fetchExportedIPCList(String packageName) {
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
@@ -146,6 +182,12 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
         }
     }
 
+    /**
+     * Handles on click event on the listed components. It shows relevant dialogs based on the type
+     * of component.
+     *
+     * @param selectedItem The selected component.
+     */
     private void onItemClick(String selectedItem) {
         try {
             if (selectedItem.startsWith("Activity: ")) {
@@ -154,7 +196,8 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
             } else if (selectedItem.startsWith("Service: ")) {
                 String serviceName = selectedItem.replace("Service: ", "");
                 showPermissionDialog(
-                        () -> services.promptForServiceParameters(this, currentPackageName, serviceName));
+                        () -> services.promptForServiceParameters(this, currentPackageName,
+                                serviceName));
             } else if (selectedItem.startsWith("Provider: ")) {
                 String providerAuthority = selectedItem.replace("Provider: ", "");
                 showPermissionDialog(
@@ -163,16 +206,32 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
                 String receiverName = selectedItem.replace("Receiver: ", "");
                 broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
             } else {
-                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT)
+                        .show();
             }
+            //  Catches all errors that can occur.
         } catch (Exception e) {
             Log.e("MainActivity", "Error handling item click", e);
-            Toast.makeText(this, "Error handling item click", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error handling item click", Toast.LENGTH_SHORT)
+                    .show();
         }
     }
 
+    /**
+     *  Handles the result of the permission requests, displaying a toast message based on the
+     *  permissions were granted or denied.
+     *
+     *  @param requestCode The request code passed in requestPermissions(
+     *  android.app.Activity, String[], int).
+     *  @param permissions The requested permissions. Never null.
+     *  @param grantResults The grant results for the corresponding permissions
+     *     which is either android.content.pm.PackageManager.PERMISSION_GRANTED
+     *     or android.content.pm.PackageManager#PERMISSION_DENIED. Never null.
+     *
+     */
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -183,10 +242,20 @@ public class MainActivity extends AppCompatActivity implements ContentProviders.
         }
     }
 
+    /**
+     *  Callback method that gets called when content provider path discovery is completed.
+     *  Displays a dialog with the discovered path.
+     *
+     *  @param accessiblePaths A list of accessible content providers.
+     */
     @Override
     public void onDiscoveryComplete(List<String> accessiblePaths) {
         runOnUiThread(() -> {
-            StringBuilder message = new StringBuilder("Content provider path discovery is finished.\n\n");
+            StringBuilder message = new StringBuilder("""
+                    Content provider path discovery is finished.\
+
+
+                    """);
 
             if (!accessiblePaths.isEmpty()) {
                 message.append("Accessible paths:\n");

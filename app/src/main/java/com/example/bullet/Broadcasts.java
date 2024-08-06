@@ -7,8 +7,19 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
 
+/**
+ * The Broadcasts class provides methods to prompt the user for broadcast parameters
+ * and send broadcasts with or without permissions.
+ */
 public class Broadcasts {
 
+    /**
+     * Prompts the user to enter broadcast parameters including key, value, and permissions.
+     * Displays an AlertDialog with input fields for key, value, and permissions. On confirmation, it calls sendBroadcast with the entered parameters.
+     *
+     * @param context The context from which this method is called.
+     * @param receiverName The name of the broadcast receiver.
+     */
     public void promptForBroadcastPermissionParameters(Context context, String receiverName) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Enter Broadcast Parameters");
@@ -45,6 +56,15 @@ public class Broadcasts {
         builder.show();
     }
 
+    /**
+     * Sends a broadcast without permissions.
+     * Creates an Intent with the specified action and extra data, and sends the broadcast.
+     *
+     * @param context The context from which this method is called.
+     * @param inputIntent The intent action string for the broadcast.
+     * @param key The key for the broadcast extra data.
+     * @param value The value for the broadcast extra data.
+     */
     private void sendBroadcast(Context context, String inputIntent, String key, String value) {
         Intent intent = new Intent(inputIntent);
 
@@ -57,6 +77,16 @@ public class Broadcasts {
         context.sendBroadcast(intent);
     }
 
+    /**
+     * Sends a broadcast with permissions.
+     * Creates an Intent with the specified action and extra data, and sends the broadcast with the specified permission.
+     *
+     * @param context The context from which this method is called.
+     * @param inputIntent The intent action string for the broadcast.
+     * @param receiverPermission The required permission for the broadcast receiver.
+     * @param key The key for the broadcast extra data.
+     * @param value The value for the broadcast extra data.
+     */
     private void sendBroadcast(Context context, String inputIntent, String receiverPermission, String key, String value) {
         Intent intent = new Intent(inputIntent);
 
