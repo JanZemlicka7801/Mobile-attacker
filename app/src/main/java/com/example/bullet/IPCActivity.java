@@ -1,0 +1,163 @@
+package com.example.bullet;
+
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
+import android.content.pm.ServiceInfo;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Activity for discovering and exploiting exported IPC components.
+ */
+public class IPCActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
+
+    private IPCAdapter ipcAdapter;
+    private String currentPackageName;
+    private Broadcasts broadcasts;
+    private ContentProviders providers;
+    private Activities activities;
+    private Services services;
+    private PackageManager packageManager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_ipc);
+
+        activities = new Activities();
+        broadcasts = new Broadcasts();
+        services = new Services();
+        providers = new ContentProviders(this, this);
+
+        EditText editTextPackageName = findViewById(R.id.editTextPackageName);
+        findViewById(R.id.btnFetchIPC).setOnClickListener(view -> {
+            String packageName = editTextPackageName.getText().toString().trim();
+            if (!packageName.isEmpty()) {
+                currentPackageName = packageName;
+                fetchExportedIPCList(packageName);
+            } else {
+                Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        RecyclerView recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
+        recyclerViewIPC.setLayoutManager(new LinearLayoutManager(this));
+        ipcAdapter = new IPCAdapter(new ArrayList<>(), this::onItemClick);
+        recyclerViewIPC.setAdapter(ipcAdapter);
+
+        packageManager = getPackageManager();
+    }
+
+    private void fetchExportedIPCList(String packageName) {
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
+                    PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
+                            PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
+
+            ArrayList<String> ipcList = new ArrayList<>();
+
+            if (packageInfo.activities != null) {
+                for (ActivityInfo activityInfo : packageInfo.activities) {
+                    if (activityInfo.exported && !(activityInfo.name.contains("MainActivity"))) {
+                        ipcList.add("Activity: " + activityInfo.name);
+                    }
+                }
+            }
+
+            if (packageInfo.services != null) {
+                for (ServiceInfo serviceInfo : packageInfo.services) {
+                    if (serviceInfo.exported) {
+                        ipcList.add("Service: " + serviceInfo.name);
+                    }
+                }
+            }
+
+            if (packageInfo.providers != null) {
+                for (ProviderInfo providerInfo : packageInfo.providers) {
+                    if (providerInfo.exported) {
+                        ipcList.add("Provider: " + providerInfo.authority);
+                    }
+                }
+            }
+
+            if (packageInfo.receivers != null) {
+                for (ActivityInfo receiverInfo : packageInfo.receivers) {
+                    if (receiverInfo.exported) {
+                        ipcList.add("Receiver: " + receiverInfo.name);
+                    }
+                }
+            }
+
+            runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
+
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("IPCActivity", "Package not found", e);
+        }
+    }
+
+    private void onItemClick(String selectedItem) {
+        try {
+            if (selectedItem.startsWith("Activity: ")) {
+                String activityName = selectedItem.replace("Activity: ", "");
+                activities.showActionOptions(this, currentPackageName, activityName);
+            } else if (selectedItem.startsWith("Service: ")) {
+                String serviceName = selectedItem.replace("Service: ", "");
+                showPermissionDialog(() -> services.promptForServiceParameters(this, currentPackageName, serviceName));
+            } else if (selectedItem.startsWith("Provider: ")) {
+                String providerAuthority = selectedItem.replace("Provider: ", "");
+                showPermissionDialog(() -> providers.discoverContentProviderPaths(providerAuthority));
+            } else if (selectedItem.startsWith("Receiver: ")) {
+                String receiverName = selectedItem.replace("Receiver: ", "");
+                broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
+            } else {
+                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e("IPCActivity", "Error handling item click", e);
+            Toast.makeText(this, "Error handling item click", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onDiscoveryComplete(List<String> accessiblePaths) {
+        runOnUiThread(() -> {
+            StringBuilder message = new StringBuilder("Content provider path discovery is finished.\n\n");
+
+            if (!accessiblePaths.isEmpty()) {
+                message.append("Accessible paths:\n");
+                for (String path : accessiblePaths) {
+                    message.append(path).append("\n");
+                }
+            } else {
+                message.append("No accessible path has been discovered.\n");
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Discovery Complete")
+                    .setMessage(message.toString())
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+    }
+
+    private void showPermissionDialog(Runnable onConfirmed) {
+        new AlertDialog.Builder(this)
+                .setTitle("Permissions Confirmation")
+                .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
+                .setPositiveButton("OK", (dialog, which) -> onConfirmed.run())
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+}

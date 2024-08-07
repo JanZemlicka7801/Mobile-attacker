@@ -5,10 +5,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
-/**
- * Main activity that serves as a launcher for Deep Links and IPC Components activities.
- */
-public class MainActivity extends AppCompatActivity {
+public class MainComponents extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,12 +16,12 @@ public class MainActivity extends AppCompatActivity {
         Button btnIPCComponents = findViewById(R.id.btnIPCComponents);
 
         btnDeepLinks.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, DeepLinksActivity.class);
+            Intent intent = new Intent(MainComponents.this, DeepLinksActivity.class);
             startActivity(intent);
         });
 
         btnIPCComponents.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, IPCActivity.class);
+            Intent intent = new Intent(MainComponents.this, IPCActivity.class);
             startActivity(intent);
         });
     }
