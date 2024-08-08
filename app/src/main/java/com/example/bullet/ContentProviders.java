@@ -24,7 +24,6 @@ import java.util.List;
 
 public class ContentProviders {
 
-    private static final int PERMISSION_REQUEST_CODE = 100;
     private final Context context;
     private final DiscoveryCallback callback;
 

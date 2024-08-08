@@ -1,4 +1,3 @@
-// DeepLinksActivity.java
 package com.example.bullet;
 
 import android.content.Intent;
