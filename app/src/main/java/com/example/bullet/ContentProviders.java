@@ -1,13 +1,16 @@
 package com.example.bullet;
 
+import android.content.ContentProviderClient;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
-import android.content.ContentProviderClient;
 import android.os.RemoteException;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -19,52 +22,32 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The ContentProviders class provides methods to discover accessible paths
- * for a given content provider authority.
- */
 public class ContentProviders {
 
-    /**
-     * Interface for discovery callback to notify when content provider path discovery is complete.
-     */
-    public interface DiscoveryCallback {
-        /**
-         * Called when content provider path discovery is complete.
-         *
-         * @param accessiblePaths List of accessible content provider paths.
-         */
-        void onDiscoveryComplete(List<String> accessiblePaths);
-    }
-
+    private static final int PERMISSION_REQUEST_CODE = 100;
     private final Context context;
     private final DiscoveryCallback callback;
 
-    /**
-     * Constructor for ContentProviders class.
-     *
-     * @param context  The context from which this class is instantiated.
-     * @param callback The callback to notify when path discovery is complete.
-     */
+    public interface DiscoveryCallback {
+        void onDiscoveryComplete(List<String> accessiblePaths);
+    }
+
     public ContentProviders(Context context, DiscoveryCallback callback) {
         this.context = context;
         this.callback = callback;
     }
 
-    /**
-     * Starts the discovery of content provider paths for the given authority.
-     * Function: * Creates a new thread to perform the path discovery.
-     *           * Clears the output file found_paths.txt before writing.
-     *           * Reads paths from a words resource file and checks if they are accessible.
-     *           * Writes accessible paths to the output file and calls the callback method with the list of accessible paths.
-     *
-     * @param authority The authority of the content provider to discover paths for.
-     */
     public void discoverContentProviderPaths(String authority) {
+        List<String> requiredPermissions = getPermissionsForAuthority(authority);
+        if (!arePermissionsDeclared(requiredPermissions)) {
+            Toast.makeText(context, "Required permissions are not declared in the manifest.", Toast.LENGTH_SHORT).show();
+            terminateApp();
+            return;
+        }
+
         new Thread(() -> {
             File outputFile = new File(context.getExternalFilesDir(null), "found_paths.txt");
             List<String> accessiblePaths = new ArrayList<>();
-            // Clear file content before writing
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false))) {
                 writer.write("");
             } catch (IOException e) {
@@ -86,8 +69,7 @@ public class ContentProviders {
                         writer.newLine();
                         accessiblePaths.add(path);
                     }
-                    if (counter % 10000 == 0) { // Print every 10000 lines processed
-                        // Display a toast notification with the number of lines processed
+                    if (counter % 10000 == 0) {
                         final int linesProcessed = counter;
                         new Handler(Looper.getMainLooper()).post(() ->
                                 Toast.makeText(context, "Processed " + linesProcessed + " lines.", Toast.LENGTH_SHORT).show()
@@ -100,22 +82,13 @@ public class ContentProviders {
                 new Handler(Looper.getMainLooper()).post(() ->
                         Toast.makeText(context, "Total lines processed: " + finalCounter, Toast.LENGTH_SHORT).show()
                 );
-                callback.onDiscoveryComplete(accessiblePaths); // Notify completion with accessible paths
+                callback.onDiscoveryComplete(accessiblePaths);
             } catch (IOException e) {
                 Log.e("Content Providers", "Error processing paths from file", e);
             }
         }).start();
     }
 
-    /**
-     * Checks if the given content provider path is accessible.
-     * Function: * Tries to query the content provider at the given path.
-     *           * Returns True if the query succeeds and returns at least one result, False otherwise.
-     *           * Handles and logs exceptions appropriately.
-     *
-     * @param path The content provider path to check.
-     * @return True if the path is accessible, false otherwise.
-     */
     private boolean isPathAccessible(String path) {
         Cursor cursor = null;
         ContentProviderClient client = null;
@@ -141,5 +114,36 @@ public class ContentProviders {
             }
         }
         return false;
+    }
+
+    private List<String> getPermissionsForAuthority(String authority) {
+        List<String> requiredPermissions = new ArrayList<>();
+        PackageManager packageManager = context.getPackageManager();
+        ProviderInfo providerInfo = packageManager.resolveContentProvider(authority, PackageManager.GET_META_DATA);
+        if (providerInfo != null && providerInfo.readPermission != null) {
+            requiredPermissions.add(providerInfo.readPermission);
+        }
+        if (providerInfo != null && providerInfo.writePermission != null) {
+            requiredPermissions.add(providerInfo.writePermission);
+        }
+        return requiredPermissions;
+    }
+
+    private boolean arePermissionsDeclared(List<String> permissions) {
+        for (String permission : permissions) {
+            if (context.checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void terminateApp() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(1);
     }
 }

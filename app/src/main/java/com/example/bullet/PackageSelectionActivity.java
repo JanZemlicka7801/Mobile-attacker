@@ -17,7 +17,7 @@ public class PackageSelectionActivity extends AppCompatActivity {
 
     private PackageManager packageManager;
     private List<String> userApps;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

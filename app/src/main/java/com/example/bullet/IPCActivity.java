@@ -144,7 +144,7 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 showPermissionDialog(() -> services.promptForServiceParameters(this, currentPackageName, serviceName));
             } else if (selectedItemText.startsWith("Provider: ")) {
                 String providerAuthority = selectedItemText.replace("Provider: ", "");
-                showPermissionDialog(() -> providers.discoverContentProviderPaths(providerAuthority));
+                providers.discoverContentProviderPaths(providerAuthority);
             } else if (selectedItemText.startsWith("Receiver: ")) {
                 String receiverName = selectedItemText.replace("Receiver: ", "");
                 broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
