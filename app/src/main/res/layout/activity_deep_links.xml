@@ -5,6 +5,20 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Add your UI elements for deep link testing here -->
+    <EditText
+        android:id="@+id/editTextPackageName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter package name" />
 
+    <Button
+        android:id="@+id/btnFetchDeepLinks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fetch Deep Links" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewDeepLinks"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </LinearLayout>

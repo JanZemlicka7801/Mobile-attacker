@@ -1,3 +1,4 @@
+// IPCActivity.java
 package com.example.bullet;
 
 import android.content.pm.ActivityInfo;
@@ -5,8 +6,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -15,6 +20,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +67,9 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         recyclerViewIPC.setAdapter(ipcAdapter);
 
         packageManager = getPackageManager();
+
+        Button btnShowPaths = findViewById(R.id.btnShowPaths);
+        btnShowPaths.setOnClickListener(view -> showAccessiblePaths());
     }
 
     private void fetchExportedIPCList(String packageName) {
@@ -66,12 +78,15 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                     PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
                             PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
 
-            ArrayList<String> ipcList = new ArrayList<>();
+            ArrayList<SpannableString> ipcList = new ArrayList<>();
 
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
                     if (activityInfo.exported && !(activityInfo.name.contains("MainActivity"))) {
-                        ipcList.add("Activity: " + activityInfo.name);
+                        String activityLabel = "Activity: ";
+                        SpannableString spannableActivity = new SpannableString(activityLabel + activityInfo.name);
+                        spannableActivity.setSpan(new ForegroundColorSpan(Color.BLUE), 0, activityLabel.length(), 0);
+                        ipcList.add(spannableActivity);
                     }
                 }
             }
@@ -79,7 +94,10 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
             if (packageInfo.services != null) {
                 for (ServiceInfo serviceInfo : packageInfo.services) {
                     if (serviceInfo.exported) {
-                        ipcList.add("Service: " + serviceInfo.name);
+                        String serviceLabel = "Service: ";
+                        SpannableString spannableService = new SpannableString(serviceLabel + serviceInfo.name);
+                        spannableService.setSpan(new ForegroundColorSpan(Color.GREEN), 0, serviceLabel.length(), 0);
+                        ipcList.add(spannableService);
                     }
                 }
             }
@@ -87,15 +105,21 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
             if (packageInfo.providers != null) {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
-                        ipcList.add("Provider: " + providerInfo.authority);
+                        String providerLabel = "Provider: ";
+                        SpannableString spannableProvider = new SpannableString(providerLabel + providerInfo.name);
+                        spannableProvider.setSpan(new ForegroundColorSpan(Color.RED), 0, providerLabel.length(), 0);
+                        ipcList.add(spannableProvider);
                     }
                 }
             }
 
             if (packageInfo.receivers != null) {
                 for (ActivityInfo receiverInfo : packageInfo.receivers) {
-                    if (receiverInfo.exported) {
-                        ipcList.add("Receiver: " + receiverInfo.name);
+                    if (receiverInfo.exported){
+                        String receiverLabel = "Receiver: ";
+                        SpannableString spannableReceiver = new SpannableString(receiverLabel + receiverInfo.name);
+                        spannableReceiver.setSpan(new ForegroundColorSpan(Color.GRAY), 0, receiverLabel.length(), 0);
+                        ipcList.add(spannableReceiver);
                     }
                 }
             }
@@ -107,22 +131,23 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         }
     }
 
-    private void onItemClick(String selectedItem) {
+    private void onItemClick(SpannableString selectedItem) {
         try {
-            if (selectedItem.startsWith("Activity: ")) {
-                String activityName = selectedItem.replace("Activity: ", "");
+            String selectedItemText = selectedItem.toString();
+            if (selectedItemText.startsWith("Activity: ")) {
+                String activityName = selectedItemText.replace("Activity: ", "");
                 activities.showActionOptions(this, currentPackageName, activityName);
-            } else if (selectedItem.startsWith("Service: ")) {
-                String serviceName = selectedItem.replace("Service: ", "");
+            } else if (selectedItemText.startsWith("Service: ")) {
+                String serviceName = selectedItemText.replace("Service: ", "");
                 showPermissionDialog(() -> services.promptForServiceParameters(this, currentPackageName, serviceName));
-            } else if (selectedItem.startsWith("Provider: ")) {
-                String providerAuthority = selectedItem.replace("Provider: ", "");
+            } else if (selectedItemText.startsWith("Provider: ")) {
+                String providerAuthority = selectedItemText.replace("Provider: ", "");
                 showPermissionDialog(() -> providers.discoverContentProviderPaths(providerAuthority));
-            } else if (selectedItem.startsWith("Receiver: ")) {
-                String receiverName = selectedItem.replace("Receiver: ", "");
+            } else if (selectedItemText.startsWith("Receiver: ")) {
+                String receiverName = selectedItemText.replace("Receiver: ", "");
                 broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
             } else {
-                Toast.makeText(this, "Selected: " + selectedItem, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Selected: " + selectedItemText, Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e("IPCActivity", "Error handling item click", e);
@@ -158,6 +183,32 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 .setMessage("Have you imported all needed permissions inside the AndroidManifest.xml?")
                 .setPositiveButton("OK", (dialog, which) -> onConfirmed.run())
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void showAccessiblePaths() {
+        File file = new File(getExternalFilesDir(null), "found_paths.txt");
+        if (!file.exists()) {
+            Toast.makeText(this, "No accessible paths found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder paths = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                paths.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            Log.e("IPCActivity", "Error reading paths file", e);
+            Toast.makeText(this, "Error reading paths file.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Accessible Paths")
+                .setMessage(paths.toString())
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 }

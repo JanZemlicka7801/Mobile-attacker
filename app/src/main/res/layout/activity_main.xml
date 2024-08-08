@@ -9,11 +9,11 @@
         android:id="@+id/btnDeepLinks"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Test Deep Links" />
+        android:text="@string/test_deep_links" />
 
     <Button
         android:id="@+id/btnIPCComponents"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Test IPC Components" />
+        android:text="@string/test_ipc_components" />
 </LinearLayout>
