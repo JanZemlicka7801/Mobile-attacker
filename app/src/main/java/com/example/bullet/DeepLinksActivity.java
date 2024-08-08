@@ -1,13 +1,13 @@
+// DeepLinksActivity.java
 package com.example.bullet;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.content.res.XmlResourceParser;
+import android.os.Bundle;
 import android.util.Log;
-import android.widget.EditText;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,25 +20,25 @@ import java.util.List;
 
 public class DeepLinksActivity extends AppCompatActivity {
 
-    private EditText editTextPackageName;
-    private Button btnFetchDeepLinks;
+    private String currentPackageName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_deep_links);
 
-        editTextPackageName = findViewById(R.id.editTextPackageName);
-        btnFetchDeepLinks = findViewById(R.id.btnFetchDeepLinks);
+        Intent intent = getIntent();
+        if (intent != null) {
+            currentPackageName = intent.getStringExtra("packageName");
+        }
 
-        btnFetchDeepLinks.setOnClickListener(view -> {
-            String packageName = editTextPackageName.getText().toString().trim();
-            if (!packageName.isEmpty()) {
-                fetchDeepLinks(packageName);
-            } else {
-                Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
-            }
-        });
+        if (currentPackageName == null) {
+            Toast.makeText(this, "No package name provided", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        fetchDeepLinks(currentPackageName);
     }
 
     private void fetchDeepLinks(String packageName) {
@@ -57,7 +57,7 @@ public class DeepLinksActivity extends AppCompatActivity {
                         Toast.makeText(this, "No activities with autoVerify found.", Toast.LENGTH_SHORT).show();
                     } else {
                         for (String activity : activitiesWithAutoVerify) {
-                            System.out.println("jaj: " + activity);
+                            System.out.println("AutoVerify Activity: " + activity);
                         }
                     }
                 });

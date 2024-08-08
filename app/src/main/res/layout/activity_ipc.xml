@@ -3,42 +3,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <EditText
-        android:id="@+id/editTextPackageName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints=""
-        android:hint="@string/enter_package_name"
-        android:layout_margin="16dp"
-        android:layout_centerHorizontal="true"/>
-
-    <Button
-        android:id="@+id/btnFetchIPC"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/editTextPackageName"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="26dp"
-        android:layout_marginTop="20dp"
-        android:text="Fetch IPC List" />
+    tools:context=".IPCActivity">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewIPC"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btnFetchIPC"
-        android:layout_marginTop="10dp" />
+        android:layout_below="@+id/btnShowPaths"
+        android:layout_marginTop="47dp"
+        android:layout_marginBottom="47dp"/>
 
     <Button
         android:id="@+id/btnShowPaths"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/editTextPackageName"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="26dp"
-        android:text="Show Accessible Paths" />
+        android:layout_marginStart="109dp"
+        android:layout_marginTop="47dp"
+        android:layout_marginEnd="109dp"
+        android:text="@string/show_accessible_paths" />
 
 </RelativeLayout>

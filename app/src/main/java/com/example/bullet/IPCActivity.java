@@ -1,6 +1,6 @@
-// IPCActivity.java
 package com.example.bullet;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -12,7 +12,6 @@ import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -27,9 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Activity for discovering and exploiting exported IPC components.
- */
 public class IPCActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
 
     private IPCAdapter ipcAdapter;
@@ -45,28 +41,30 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ipc);
 
+        Intent intent = getIntent();
+        if (intent != null) {
+            currentPackageName = intent.getStringExtra("packageName");
+        }
+
+        if (currentPackageName == null) {
+            Toast.makeText(this, "No package name provided", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         activities = new Activities();
         broadcasts = new Broadcasts();
         services = new Services();
         providers = new ContentProviders(this, this);
 
-        EditText editTextPackageName = findViewById(R.id.editTextPackageName);
-        findViewById(R.id.btnFetchIPC).setOnClickListener(view -> {
-            String packageName = editTextPackageName.getText().toString().trim();
-            if (!packageName.isEmpty()) {
-                currentPackageName = packageName;
-                fetchExportedIPCList(packageName);
-            } else {
-                Toast.makeText(this, "Please enter a package name", Toast.LENGTH_SHORT).show();
-            }
-        });
+        packageManager = getPackageManager();
 
         RecyclerView recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
         recyclerViewIPC.setLayoutManager(new LinearLayoutManager(this));
         ipcAdapter = new IPCAdapter(new ArrayList<>(), this::onItemClick);
         recyclerViewIPC.setAdapter(ipcAdapter);
 
-        packageManager = getPackageManager();
+        fetchExportedIPCList(currentPackageName);
 
         Button btnShowPaths = findViewById(R.id.btnShowPaths);
         btnShowPaths.setOnClickListener(view -> showAccessiblePaths());
@@ -124,7 +122,11 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 }
             }
 
-            runOnUiThread(() -> ipcAdapter.updateIPCList(ipcList));
+            runOnUiThread(() -> {
+                if (ipcAdapter != null) {
+                    ipcAdapter.updateIPCList(ipcList);
+                }
+            });
 
         } catch (PackageManager.NameNotFoundException e) {
             Log.e("IPCActivity", "Package not found", e);

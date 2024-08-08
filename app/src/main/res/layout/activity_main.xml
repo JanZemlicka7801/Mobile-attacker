@@ -6,14 +6,9 @@
     android:padding="16dp">
 
     <Button
-        android:id="@+id/btnDeepLinks"
+        android:id="@+id/btnSelectPackage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/test_deep_links" />
+        android:text="@string/select_package" />
 
-    <Button
-        android:id="@+id/btnIPCComponents"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/test_ipc_components" />
 </LinearLayout>

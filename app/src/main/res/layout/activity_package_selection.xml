@@ -5,8 +5,9 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewDeepLinks"
+    <ListView
+        android:id="@+id/listViewPackages"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
 </LinearLayout>

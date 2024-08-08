@@ -3,4 +3,6 @@
     <string name="test_ipc_components">Test IPC Components</string>
     <string name="test_deep_links">Test Deep Links</string>
     <string name="enter_package_name">Enter Package Name</string>
+    <string name="select_package">Select Package</string>
+    <string name="show_accessible_paths">Show Accessible Paths</string>
 </resources>
