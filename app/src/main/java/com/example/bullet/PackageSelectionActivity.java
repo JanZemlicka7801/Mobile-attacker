@@ -15,7 +15,6 @@ import java.util.List;
 
 public class PackageSelectionActivity extends AppCompatActivity {
 
-    private PackageManager packageManager;
     private List<String> userApps;
 
     @Override
@@ -23,7 +22,7 @@ public class PackageSelectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_package_selection);
 
-        packageManager = getPackageManager();
+        PackageManager packageManager = getPackageManager();
         userApps = new ArrayList<>();
 
         List<ApplicationInfo> apps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
