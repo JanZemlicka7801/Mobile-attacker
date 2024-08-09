@@ -53,9 +53,11 @@ public class MyForegroundService extends Service {
         String input = intent.getStringExtra("inputExtra");
 
         // Extract the base from the selected service (e.g., "androidx.work.impl.background.systemjob.")
+        assert fullServiceClassName != null;
         String baseService = extractBaseService(fullServiceClassName);
 
         // Ensure the input is converted to uppercase and combine it with the base service
+        assert input != null;
         String fullAction = baseService + input.toUpperCase();
 
         // Create and configure the notification channel for the foreground service
