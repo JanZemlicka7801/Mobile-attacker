@@ -17,11 +17,19 @@ import androidx.core.app.NotificationCompat;
 
 /**
  * MyForegroundService class to handle foreground service operations and launching other services dynamically.
+ * This service runs in the foreground and displays a persistent notification to ensure it continues running.
  */
 public class MyForegroundService extends Service {
 
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
 
+    /**
+     * This method is required for bound services, but since this service is not bound,
+     * it returns null.
+     *
+     * @param intent The Intent that was used to bind to this service.
+     * @return Always returns null since this is a foreground service, not a bound service.
+     */
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -29,21 +37,26 @@ public class MyForegroundService extends Service {
     }
 
     /**
-     * Called when the service is started. It creates a notification channel and launches the specified service.
+     * Called when the service is started. It creates a notification channel and starts the service
+     * in the foreground with a persistent notification. It then dynamically launches another service
+     * based on the parameters passed in the intent.
      *
      * @param intent  The intent containing the parameters for the service to be launched.
-     * @param flags   Additional data about the start request.
-     * @param startId A unique integer representing this specific request to start.
-     * @return The return value indicates what semantics the system should use for the service's current started state.
+     * @param flags   Additional data about the start request. This is usually 0, but can be START_FLAG_REDELIVERY or START_FLAG_RETRY.
+     * @param startId A unique integer representing this specific request to start. Used to identify the request.
+     * @return The return value indicates what semantics the system should use for the service's current started state. In this case, START_NOT_STICKY is used.
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Extract additional data from the intent for notification
         String input = intent.getStringExtra("inputExtra");
 
+        // Create and configure the notification channel for the foreground service
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
+        // Build the notification for the foreground service
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Foreground Service")
                 .setContentText(input)
@@ -51,9 +64,10 @@ public class MyForegroundService extends Service {
                 .setContentIntent(pendingIntent)
                 .build();
 
+        // Start the service in the foreground, displaying the notification
         startForeground(1, notification);
 
-        // Perform the actual work of the service here
+        // Perform the actual work of the service here: launch another service based on the intent data
         String packageName = intent.getStringExtra("packageName");
         String className = intent.getStringExtra("className");
         String action = intent.getStringExtra("action");
@@ -62,18 +76,22 @@ public class MyForegroundService extends Service {
         String extraValue = intent.getStringExtra("extraValue");
         launchService(this, packageName, className, action, data, extraKey, extraValue);
 
+        // Use START_NOT_STICKY to prevent the service from being restarted automatically if it is killed
         return START_NOT_STICKY;
     }
 
     /**
-     * Creates a notification channel for the foreground service.
+     * Creates a notification channel for the foreground service. This is required for API level 26+.
+     * The notification channel defines the importance and behavior of the notifications from this service.
      */
     private void createNotificationChannel() {
+        // Define the notification channel with a unique ID and description
         NotificationChannel serviceChannel = new NotificationChannel(
                 CHANNEL_ID,
                 "Foreground Service Channel",
                 NotificationManager.IMPORTANCE_DEFAULT
         );
+        // Register the notification channel with the system
         NotificationManager manager = getSystemService(NotificationManager.class);
         if (manager != null) {
             manager.createNotificationChannel(serviceChannel);
@@ -81,18 +99,20 @@ public class MyForegroundService extends Service {
     }
 
     /**
-     * Launches a service with the provided parameters.
+     * Launches another service with the provided parameters. This method dynamically sets
+     * the action, data, and extras for the intent used to start the service.
      *
      * @param context    The context from which this method is called.
      * @param packageName The package name of the service to be launched.
      * @param className   The class name of the service to be launched.
-     * @param action      The action to be set for the intent.
-     * @param data        The data URI to be set for the intent.
-     * @param extraKey    The key for the extra data.
-     * @param extraValue  The value for the extra data.
+     * @param action      The action to be set for the intent. Can be null or empty if not needed.
+     * @param data        The data URI to be set for the intent. Can be null or empty if not needed.
+     * @param extraKey    The key for the extra data. Can be null or empty if not needed.
+     * @param extraValue  The value for the extra data. Can be null or empty if not needed.
      */
     private void launchService(Context context, String packageName, String className, String action, String data, String extraKey, String extraValue) {
         try {
+            // Create an intent to start the specified service
             Intent serviceIntent = new Intent();
             serviceIntent.setComponent(new ComponentName(packageName, className));
             if (action != null && !action.isEmpty()) {
@@ -104,9 +124,11 @@ public class MyForegroundService extends Service {
             if (extraKey != null && !extraKey.isEmpty() && extraValue != null && !extraValue.isEmpty()) {
                 serviceIntent.putExtra(extraKey, extraValue);
             }
+            // Start the service
             context.startService(serviceIntent);
             Log.i("Service", "Service launched with parameters: " + serviceIntent);
         } catch (Exception e) {
+            // Log an error if the service fails to start
             Log.e("Service", "Failed to launch service: " + packageName + "/" + className, e);
         }
     }

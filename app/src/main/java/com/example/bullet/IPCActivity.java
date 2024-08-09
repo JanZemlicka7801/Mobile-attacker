@@ -26,6 +26,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The IPCActivity class is responsible for listing and interacting with various Inter-Process Communication (IPC) components
+ * of a selected package, such as Activities, Services, Content Providers, and Broadcast Receivers.
+ */
 public class IPCActivity extends AppCompatActivity implements ContentProviders.DiscoveryCallback {
 
     private IPCAdapter ipcAdapter;
@@ -36,11 +40,17 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
     private Services services;
     private PackageManager packageManager;
 
+    /**
+     * Initializes the activity, setting up the UI and fetching IPC components of the provided package.
+     *
+     * @param savedInstanceState The saved instance state bundle.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ipc);
 
+        // Get the package name from the Intent extras
         Intent intent = getIntent();
         if (intent != null) {
             currentPackageName = intent.getStringExtra("packageName");
@@ -52,32 +62,42 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
             return;
         }
 
+        // Initialize helper classes
         activities = new Activities();
         broadcasts = new Broadcasts();
         services = new Services();
         providers = new ContentProviders(this, this);
-
         packageManager = getPackageManager();
 
+        // Set up the RecyclerView for displaying IPC components
         RecyclerView recyclerViewIPC = findViewById(R.id.recyclerViewIPC);
         recyclerViewIPC.setLayoutManager(new LinearLayoutManager(this));
         ipcAdapter = new IPCAdapter(new ArrayList<>(), this::onItemClick);
         recyclerViewIPC.setAdapter(ipcAdapter);
 
+        // Fetch and display the exported IPC components
         fetchExportedIPCList(currentPackageName);
 
+        // Set up button to display accessible paths discovered
         Button btnShowPaths = findViewById(R.id.btnShowPaths);
         btnShowPaths.setOnClickListener(view -> showAccessiblePaths());
     }
 
+    /**
+     * Fetches the exported IPC components of the specified package and displays them in the RecyclerView.
+     *
+     * @param packageName The name of the package to fetch IPC components from.
+     */
     private void fetchExportedIPCList(String packageName) {
         try {
+            // Get all activities, services, providers, and receivers of the package
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName,
                     PackageManager.GET_SERVICES | PackageManager.GET_ACTIVITIES |
                             PackageManager.GET_PROVIDERS | PackageManager.GET_RECEIVERS);
 
             ArrayList<SpannableString> ipcList = new ArrayList<>();
 
+            // Process exported activities
             if (packageInfo.activities != null) {
                 for (ActivityInfo activityInfo : packageInfo.activities) {
                     if (activityInfo.exported && !(activityInfo.name.contains("MainActivity"))) {
@@ -89,6 +109,7 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 }
             }
 
+            // Process exported services
             if (packageInfo.services != null) {
                 for (ServiceInfo serviceInfo : packageInfo.services) {
                     if (serviceInfo.exported) {
@@ -100,6 +121,7 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 }
             }
 
+            // Process exported content providers
             if (packageInfo.providers != null) {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
                     if (providerInfo.exported) {
@@ -111,9 +133,10 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 }
             }
 
+            // Process exported broadcast receivers
             if (packageInfo.receivers != null) {
                 for (ActivityInfo receiverInfo : packageInfo.receivers) {
-                    if (receiverInfo.exported){
+                    if (receiverInfo.exported) {
                         String receiverLabel = "Receiver: ";
                         SpannableString spannableReceiver = new SpannableString(receiverLabel + receiverInfo.name);
                         spannableReceiver.setSpan(new ForegroundColorSpan(Color.GRAY), 0, receiverLabel.length(), 0);
@@ -122,6 +145,7 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 }
             }
 
+            // Update the RecyclerView with the fetched IPC components
             runOnUiThread(() -> {
                 if (ipcAdapter != null) {
                     ipcAdapter.updateIPCList(ipcList);
@@ -133,6 +157,11 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         }
     }
 
+    /**
+     * Handles item clicks in the RecyclerView, performing the appropriate action based on the selected IPC component.
+     *
+     * @param selectedItem The SpannableString representing the selected IPC component.
+     */
     private void onItemClick(SpannableString selectedItem) {
         try {
             String selectedItemText = selectedItem.toString();
@@ -157,6 +186,11 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         }
     }
 
+    /**
+     * Callback method triggered when content provider path discovery is complete.
+     *
+     * @param accessiblePaths A list of accessible paths discovered.
+     */
     @Override
     public void onDiscoveryComplete(List<String> accessiblePaths) {
         runOnUiThread(() -> {
@@ -171,6 +205,7 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 message.append("No accessible path has been discovered.\n");
             }
 
+            // Display the results of the discovery in a dialog
             new AlertDialog.Builder(this)
                     .setTitle("Discovery Complete")
                     .setMessage(message.toString())
@@ -179,6 +214,11 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         });
     }
 
+    /**
+     * Displays a confirmation dialog before launching a service or performing an action.
+     *
+     * @param onConfirmed The Runnable to execute if the user confirms the action.
+     */
     private void showPermissionDialog(Runnable onConfirmed) {
         new AlertDialog.Builder(this)
                 .setTitle("Permissions Confirmation")
@@ -188,6 +228,9 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 .show();
     }
 
+    /**
+     * Displays the accessible paths discovered by the ContentProviders class.
+     */
     private void showAccessiblePaths() {
         File file = new File(getExternalFilesDir(null), "found_paths.txt");
         if (!file.exists()) {
@@ -207,6 +250,7 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
             return;
         }
 
+        // Display the discovered paths in a dialog
         new AlertDialog.Builder(this)
                 .setTitle("Accessible Paths")
                 .setMessage(paths.toString())

@@ -17,6 +17,10 @@ public class Activities {
     /**
      * Prompts the user to enter action and category for launching an activity.
      *
+     * This method displays a dialog where the user can input an action and category
+     * to be associated with the activity to be launched. If the user confirms the
+     * input, the activity is launched with the specified action and category.
+     *
      * @param context The context from which this method is called.
      * @param packageName The package name of the app containing the activity to launch.
      * @param componentName The name of the component to be launched.
@@ -26,12 +30,15 @@ public class Activities {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Enter Action and Category");
 
+        // Input field for action
         EditText inputAction = new EditText(context);
         inputAction.setHint("Enter action (e.g., VIEW)");
 
+        // Input field for category
         EditText inputCategory = new EditText(context);
         inputCategory.setHint("Enter category (e.g., DEFAULT)");
 
+        // Arranging the input fields in a vertical layout
         android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
         layout.addView(inputAction);
@@ -39,6 +46,7 @@ public class Activities {
 
         builder.setView(layout);
 
+        // Handling the "OK" button click event
         builder.setPositiveButton("OK", (dialog, which) -> {
             String action = inputAction.getText().toString().trim();
             String category = inputCategory.getText().toString().trim();
@@ -46,6 +54,8 @@ public class Activities {
                 launchActivityWithActionAndCategory(context, packageName, componentName, action, category);
             }
         });
+
+        // Handling the "Cancel" button click event
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
@@ -53,6 +63,8 @@ public class Activities {
 
     /**
      * Launches an activity without any action or category.
+     *
+     * This method starts an activity by its component name without setting any action or category.
      *
      * @param context The context from which this method is called.
      * @param packageName The package name of the app containing the activity to launch.
@@ -72,6 +84,9 @@ public class Activities {
     /**
      * Shows options for launching an activity with or without action and category.
      *
+     * This method displays a dialog with options for the user to launch an activity
+     * either with or without specifying an action and category.
+     *
      * @param context The context from which this method is called.
      * @param packageName The package name of the app containing the activity to launch.
      * @param componentName The name of the component to be launched.
@@ -82,8 +97,10 @@ public class Activities {
                 .setTitle("Launch Options")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
+                        // Launch activity without action and category
                         launchActivity(context, packageName, componentName);
                     } else {
+                        // Prompt user for action and category before launching the activity
                         promptForActionAndCategory(context, packageName, componentName, "activity");
                     }
                 })
@@ -92,6 +109,9 @@ public class Activities {
 
     /**
      * Launches an activity with specified action and category.
+     *
+     * This method starts an activity by its component name, setting the specified
+     * action and category to the intent before launching the activity.
      *
      * @param context The context from which this method is called.
      * @param packageName The package name of the app containing the activity to launch.

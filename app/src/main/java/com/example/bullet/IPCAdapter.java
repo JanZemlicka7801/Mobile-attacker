@@ -64,6 +64,7 @@ public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for each item in the list
         View view = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
         return new ViewHolder(view);
     }
@@ -109,6 +110,12 @@ public class IPCAdapter extends RecyclerView.Adapter<IPCAdapter.ViewHolder> {
             textView = itemView.findViewById(android.R.id.text1);
         }
 
+        /**
+         * Binds the data to the view and sets the click listener for the item.
+         *
+         * @param item     The SpannableString item to be displayed.
+         * @param listener The click listener for handling item click events.
+         */
         public void bind(final SpannableString item, final OnItemClickListener listener) {
             textView.setText(item);
             itemView.setOnClickListener(v -> listener.onItemClick(item));
