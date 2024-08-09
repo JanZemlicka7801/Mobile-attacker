@@ -15,7 +15,6 @@ public class Broadcasts {
 
     /**
      * Prompts the user to enter broadcast parameters including key, value, and permissions.
-     *
      * This method displays an AlertDialog with input fields for the key, value, and permissions.
      * Depending on the user's input, it sends a broadcast with or without the specified permissions.
      *
@@ -69,7 +68,6 @@ public class Broadcasts {
 
     /**
      * Sends a broadcast without permissions.
-     *
      * This method creates an Intent with the specified action and extra data,
      * and sends the broadcast without requiring any permissions.
      *
@@ -94,7 +92,6 @@ public class Broadcasts {
 
     /**
      * Sends a broadcast with permissions.
-     *
      * This method creates an Intent with the specified action and extra data,
      * and sends the broadcast with the specified permission.
      *

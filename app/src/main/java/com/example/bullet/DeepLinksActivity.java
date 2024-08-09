@@ -56,7 +56,6 @@ public class DeepLinksActivity extends AppCompatActivity {
 
     /**
      * Fetches and displays activities in the specified package that contain intent filters with autoVerify enabled.
-     *
      * This method runs in a background thread to avoid blocking the main UI thread.
      *
      * @param packageName The name of the package to search for deep links.

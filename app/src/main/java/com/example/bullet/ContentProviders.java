@@ -56,7 +56,6 @@ public class ContentProviders {
 
     /**
      * Discovers and logs accessible paths provided by the content provider with the specified authority.
-     *
      * This method checks for necessary permissions and then iterates through a list of paths to see which are accessible.
      * Accessible paths are logged and saved to a file.
      *
@@ -189,7 +188,6 @@ public class ContentProviders {
 
     /**
      * Terminates the application if the required permissions are not declared.
-     *
      * This method is used as a fallback when the required permissions are not declared,
      * prompting the app to close to prevent further unauthorized access attempts.
      */

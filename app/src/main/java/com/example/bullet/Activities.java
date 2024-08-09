@@ -16,7 +16,6 @@ public class Activities {
 
     /**
      * Prompts the user to enter action and category for launching an activity.
-     *
      * This method displays a dialog where the user can input an action and category
      * to be associated with the activity to be launched. If the user confirms the
      * input, the activity is launched with the specified action and category.
@@ -63,7 +62,6 @@ public class Activities {
 
     /**
      * Launches an activity without any action or category.
-     *
      * This method starts an activity by its component name without setting any action or category.
      *
      * @param context The context from which this method is called.
@@ -83,7 +81,6 @@ public class Activities {
 
     /**
      * Shows options for launching an activity with or without action and category.
-     *
      * This method displays a dialog with options for the user to launch an activity
      * either with or without specifying an action and category.
      *
@@ -109,7 +106,6 @@ public class Activities {
 
     /**
      * Launches an activity with specified action and category.
-     *
      * This method starts an activity by its component name, setting the specified
      * action and category to the intent before launching the activity.
      *
