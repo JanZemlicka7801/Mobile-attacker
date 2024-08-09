@@ -48,8 +48,15 @@ public class MyForegroundService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Extract additional data from the intent for notification
+        // Retrieve the full service class name and the user's input from the intent
+        String fullServiceClassName = intent.getStringExtra("serviceClassName");
         String input = intent.getStringExtra("inputExtra");
+
+        // Extract the base from the selected service (e.g., "androidx.work.impl.background.systemjob.")
+        String baseService = extractBaseService(fullServiceClassName);
+
+        // Ensure the input is converted to uppercase and combine it with the base service
+        String fullAction = baseService + input.toUpperCase();
 
         // Create and configure the notification channel for the foreground service
         createNotificationChannel();
@@ -70,15 +77,34 @@ public class MyForegroundService extends Service {
         // Perform the actual work of the service here: launch another service based on the intent data
         String packageName = intent.getStringExtra("packageName");
         String className = intent.getStringExtra("className");
-        String action = intent.getStringExtra("action");
         String data = intent.getStringExtra("data");
         String extraKey = intent.getStringExtra("extraKey");
         String extraValue = intent.getStringExtra("extraValue");
-        launchService(this, packageName, className, action, data, extraKey, extraValue);
+
+        // Use the constructed fullAction instead of just the user's input
+        launchService(this, packageName, className, fullAction, data, extraKey, extraValue);
 
         // Use START_NOT_STICKY to prevent the service from being restarted automatically if it is killed
         return START_NOT_STICKY;
     }
+
+    /**
+     * Extracts the base package name from the full service class name.
+     *
+     * @param fullServiceClassName The full class name of the selected service.
+     * @return The base package name (everything up to the last dot).
+     */
+    private String extractBaseService(String fullServiceClassName) {
+        // Find the last dot to separate the package name from the class name
+        int lastDotIndex = fullServiceClassName.lastIndexOf('.');
+        if (lastDotIndex != -1) {
+            // Return the package name part (e.g., "androidx.work.impl.background.systemjob.")
+            return fullServiceClassName.substring(0, lastDotIndex + 1);
+        }
+        // If no dot is found, return the full service class name as a fallback
+        return fullServiceClassName;
+    }
+
 
     /**
      * Creates a notification channel for the foreground service. This is required for API level 26+.
