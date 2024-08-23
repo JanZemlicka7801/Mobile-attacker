@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.chaquo.python")
 }
 
 android {
@@ -14,6 +15,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86", "x86_64")
+        }
     }
 
     buildTypes {
@@ -25,14 +30,28 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDir("src/main/python")
+        }
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version = "3.11"
+
+        buildPython("/usr/bin/python3.11")
+    }
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
