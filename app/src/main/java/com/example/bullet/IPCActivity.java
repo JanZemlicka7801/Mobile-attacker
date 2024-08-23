@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
+import android.content.res.XmlResourceParser;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -23,8 +24,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -297,5 +300,78 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
             }
             eventType = parser.next();
         }
+    }
+
+    /**
+     * Extract deep links from the target app's manifest and store them in the file
+     */
+    private void extractAndDisplayDeepLinks(String packageName) {
+        List<String> deepLinks = new ArrayList<>();
+        try {
+            // Get the PackageInfo of the target app
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA);
+
+            // Parse the AndroidManifest.xml of the target app
+            XmlResourceParser parser = packageManager.getXml(packageName, packageInfo.applicationInfo.labelRes, null);
+            assert parser != null;
+            int eventType = parser.getEventType();
+
+            // Read and parse the XML
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                // If an activity is found, intent filters will be look for
+                if (eventType == XmlPullParser.START_TAG && "activity".equals(parser.getName())){
+                    parseActivityForDeepLinks(parser, deepLinks);
+                }
+                eventType = parser.next();
+            }
+
+            // Store the deep links in a file
+            storeDeepLinks(deepLinks);
+
+            // Display deep links to the user
+            displayDeepLinks(deepLinks);
+
+        } catch (PackageManager.NameNotFoundException | XmlPullParserException | IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error extracting deep links", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Stores the deep links in a file.
+     */
+    private void storeDeepLinks(List<String> deepLinks) {
+        File outputFile = new File(getExternalFilesDir(null), "deep_links.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+            for (String link : deepLinks) {
+                writer.write(link);
+                writer.newLine();
+            }
+            Toast.makeText(this, "Deep links saved to " + outputFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error saving deep links", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Displays the deep links to the user in a dialog.
+     */
+    private void displayDeepLinks(List<String> deepLinks) {
+        if (deepLinks.isEmpty()) {
+            Toast.makeText(this, "No deep links found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder message = new StringBuilder("Discovered Deep Links:\n\n");
+        for (String link : deepLinks) {
+            message.append(link).append("\n");
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Deep Links")
+                .setMessage(message.toString())
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 }
