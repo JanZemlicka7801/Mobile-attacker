@@ -19,6 +19,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -256,5 +259,29 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 .setMessage(paths.toString())
                 .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                 .show();
+    }
+
+    /**
+     *  Parses the intent filter element for deep links.
+     */
+    private List<String> parseIntentFilterForDeepLinks(XmlPullParser parser) throws IOException, XmlPullParserException {
+        List<String> deepLinks = new ArrayList<>();
+        String scheme = null;
+        String host = null;
+        int eventType = parser.getEventType();
+
+        while (eventType != XmlPullParser.END_TAG || !"intent-filter".equals(parser.getName())){
+            if (eventType != XmlPullParser.START_TAG && "data".equals(parser.getName())){
+                // In case the data element which defines the deep link URI is found
+                scheme = parser.getAttributeValue(null, "scheme");
+                host = parser.getAttributeValue(null, "host");
+
+                if (scheme != null && host != null) {
+                    deepLinks.add(scheme + "://" + host);
+                }
+            }
+            eventType = parser.next();
+        }
+        return deepLinks;
     }
 }
