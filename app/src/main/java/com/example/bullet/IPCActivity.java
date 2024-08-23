@@ -284,4 +284,18 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         }
         return deepLinks;
     }
+
+    /**
+     * Parses the activity element in the manifest for deep links
+     */
+    private void parseActivityForDeepLinks (XmlPullParser parser, List<String> deepLinks) throws IOException, XmlPullParserException {
+        int eventType = parser.getEventType();
+        while (eventType != XmlPullParser.END_TAG || !"activity".equals(parser.getName())){
+            // In case there is a found intent, deep link data will be found
+            if (eventType == XmlPullParser.START_TAG && "intent-filter".equals(parser.getName())){
+                deepLinks.addAll(parseIntentFilterForDeepLinks(parser));
+            }
+            eventType = parser.next();
+        }
+    }
 }
