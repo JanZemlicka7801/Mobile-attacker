@@ -39,5 +39,39 @@ The purpose of this project is to extract deep links from the `AndroidManifest.x
 - **IPCActivity.java and IPCAdapter.java**: 
    - These files focus on Inter-Process Communication (IPC) components of the app, but they were not the main focus as we shifted to handling deep links specifically.
 
+## How IPC Components Work
+This section provides an overview of how the Inter-Process Communication (IPC) components of the app work, including activities, services, content providers, and broadcast receivers. The IPC components are displayed in a `RecyclerView` and allow users to interact with them.
+
+### Key Classes
+1. **IPCActivity.java**:
+   - This class is responsible for listing and interacting with various IPC components (activities, services, content providers, and broadcast receivers) of a selected package.
+   - It retrieves exported IPC components from the package using `PackageManager` and displays them in a `RecyclerView`.
+   - Users can interact with these components (e.g., launch an activity, start a service) by clicking on them in the list.
+
+2. **IPCAdapter.java**:
+   - This adapter manages the data and display of IPC components in the `RecyclerView`.
+   - Each component (activity, service, content provider, or broadcast receiver) is displayed as a colored item (e.g., blue for activities, green for services).
+   - When an item is clicked, the corresponding action (e.g., starting an activity or service) is triggered based on the type of IPC component.
+
+### How It Works
+- **Component Fetching**: 
+   - `IPCActivity.java` uses `PackageManager` to retrieve all the exported activities, services, content providers, and broadcast receivers from the specified package.
+   - The components are filtered to show only those that are exported and are not part of the main activity.
+
+- **Component Display**: 
+   - The retrieved IPC components are displayed in a `RecyclerView` with different colors indicating the type of component (e.g., blue for activities, green for services).
+   - `SpannableString` is used to apply these colors to the text.
+
+- **Interaction**: 
+   - Users can click on any IPC component in the list. Depending on the type of component, different actions are triggered:
+     - **Activities**: The user is prompted with options to start the activity.
+     - **Services**: The user is prompted to input parameters before starting the service.
+     - **Content Providers**: The app attempts to discover accessible paths in the content provider.
+     - **Broadcast Receivers**: The user is prompted to provide broadcast parameters.
+
+### Extending IPC Functionality
+- **Adding New Components**: To support additional IPC components, extend the logic in `IPCActivity.java` to retrieve and handle the new component type.
+- **Custom Actions**: Customize the actions that are triggered when a user interacts with an IPC component by modifying the `onItemClick()` method in `IPCActivity.java`.
+
 ## Conclusion
 Due to Android's security restrictions, extracting deep links directly from another app's manifest will require a more sophisticated approach, possibly involving external tools. Future developers will need to decide whether to continue attempting this on-device or offload this task to an external service.
