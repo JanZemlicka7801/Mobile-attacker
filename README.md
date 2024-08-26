@@ -1,5 +1,9 @@
 # Deep Link Extraction Project
 
+### IMPORTANT
+**- When interacting with the application, user needs to make sure all of the permissions are provided inside the Manifest.xml. Otherwise the application won't work.**
+**- Application will work only when us installed on the device, where application that needs to be tested are installed.**
+
 ## Project Summary
 The purpose of this project is to extract deep links from the `AndroidManifest.xml` file of a target application installed on the same device. The extracted deep links are then displayed to the user within a `RecyclerView`.
 
@@ -62,7 +66,7 @@ This section provides an overview of how the Inter-Process Communication (IPC) c
    - Users can click on any IPC component in the list. Depending on the type of component, different actions are triggered:
      - **Activities**: The user is prompted with options to start the activity.
      - **Services**: The user is prompted to input parameters before starting the service.
-     - **Content Providers**: The app attempts to discover accessible paths in the content provider.
+     - **Content Providers**: The app attempts to discover accessible paths in the content provider using a wordlist of around 500 000 words.
      - **Broadcast Receivers**: The user is prompted to provide broadcast parameters.
 
 ### Extending IPC Functionality
