@@ -1,4 +1,4 @@
-# Deep Link Extraction Project
+# Mobile Attacker Project - Bullet
 
 ### IMPORTANT
 **- When interacting with the application, user needs to make sure all of the permissions are provided inside the Manifest.xml. Otherwise the application won't work.**
