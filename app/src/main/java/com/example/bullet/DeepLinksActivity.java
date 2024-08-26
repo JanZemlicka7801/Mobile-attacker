@@ -1,129 +1,145 @@
 package com.example.bullet;
 
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * DeepLinksActivity class is responsible for fetching and displaying activities
- * within an application that have intent filters with the autoVerify attribute set.
+ * Activity to extract and display deep links in a RecyclerView.
  */
 public class DeepLinksActivity extends AppCompatActivity {
 
-    // The package name provided by the previous activity
-    private String currentPackageName;
+    // Tag for logging
+    private static final String TAG = "DeepLinksActivity";
 
-    /**
-     * Called when the activity is starting. This is where most initialization should go.
-     *
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
-     *                           then this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
-     */
+    // Adapter for the RecyclerView
+    private DeepLinksAdapter adapter;
+
+    // List to hold extracted deep links
+    private ArrayList<String> deepLinks;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_deep_links);
 
-        // Retrieve the package name from the intent
-        Intent intent = getIntent();
-        if (intent != null) {
-            currentPackageName = intent.getStringExtra("packageName");
-        }
+        // Initialize deep links list
+        deepLinks = new ArrayList<>();
 
-        // Check if the package name is null and terminate the activity if it is
-        if (currentPackageName == null) {
+        // Setup RecyclerView to display deep links
+        RecyclerView recyclerView = findViewById(R.id.recyclerViewDeepLinks);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Initialize the adapter with the deep links list and set it to the RecyclerView
+        adapter = new DeepLinksAdapter(deepLinks);
+        recyclerView.setAdapter(adapter);
+
+        // Setup button to start the deep link extraction process
+        Button btnStartExtraction = findViewById(R.id.btnStartExtraction);
+        btnStartExtraction.setOnClickListener(view -> {
+            Log.d(TAG, "Start Extraction button clicked");
+            startExtraction();  // Begin extraction when the button is clicked
+        });
+    }
+
+    /**
+     * Starts the deep link extraction process for the provided package.
+     */
+    private void startExtraction() {
+        // Get the package name from the intent
+        String packageName = getIntent().getStringExtra("packageName");
+
+        if (packageName == null) {
+            // If no package name was provided, show a Toast and log an error
             Toast.makeText(this, "No package name provided", Toast.LENGTH_SHORT).show();
-            finish();
+            Log.e(TAG, "No package name provided in the intent");
             return;
         }
 
-        // Fetch deep links associated with the provided package name
-        fetchDeepLinks(currentPackageName);
-    }
+        // Clear any previous deep links
+        deepLinks.clear();
+        Log.d(TAG, "Starting deep link extraction for package: " + packageName);
 
-    /**
-     * Fetches and displays activities in the specified package that contain intent filters with autoVerify enabled.
-     * This method runs in a background thread to avoid blocking the main UI thread.
-     *
-     * @param packageName The name of the package to search for deep links.
-     */
-    private void fetchDeepLinks(String packageName) {
-        new Thread(() -> {
-            PackageManager packageManager = getPackageManager();
-            try {
-                // Get all activities in the package with metadata
-                PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES | PackageManager.GET_META_DATA);
-                List<String> activitiesWithAutoVerify = new ArrayList<>();
-                for (ActivityInfo activityInfo : packageInfo.activities) {
-                    // Check if the activity has an autoVerify intent filter
-                    if (hasAutoVerifyIntentFilter(packageName, activityInfo)) {
-                        activitiesWithAutoVerify.add(activityInfo.name);
-                    }
-                }
-                // Update the UI with the results
-                runOnUiThread(() -> {
-                    if (activitiesWithAutoVerify.isEmpty()) {
-                        Toast.makeText(this, "No activities with autoVerify found.", Toast.LENGTH_SHORT).show();
-                    } else {
-                        for (String activity : activitiesWithAutoVerify) {
-                            System.out.println("AutoVerify Activity: " + activity);
-                        }
-                    }
-                });
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.e("DeepLinks", "Package not found: " + packageName, e);
-            }
-        }).start();
-    }
-
-    /**
-     * Checks if the given activity has an intent filter with autoVerify enabled in its manifest.
-     *
-     * @param packageName  The package name of the app containing the activity.
-     * @param activityInfo The activity information to check.
-     * @return true if the activity has an autoVerify intent filter, false otherwise.
-     */
-    private boolean hasAutoVerifyIntentFilter(String packageName, ActivityInfo activityInfo) {
         try {
-            XmlResourceParser parser = createPackageContext(packageName, 0).getAssets().openXmlResourceParser("AndroidManifest.xml");
-            int eventType = parser.getEventType();
-            boolean inActivity = false;
-            boolean autoVerify = false;
+            // Attempt to parse the AndroidManifest.xml from the package
+            XmlResourceParser parser = getPackageManager().getXml(packageName, getPackageManager().getApplicationInfo(packageName, 0).labelRes, null);
 
-            // Parse the manifest file to find autoVerify intent filters
-            while (eventType != XmlResourceParser.END_DOCUMENT) {
-                if (eventType == XmlResourceParser.START_TAG) {
-                    String tagName = parser.getName();
-                    if ("activity".equals(tagName)) {
-                        String name = parser.getAttributeValue(null, "name");
-                        inActivity = name != null && name.equals(activityInfo.name);
-                    } else if (inActivity && "intent-filter".equals(tagName)) {
-                        autoVerify = "true".equals(parser.getAttributeValue(null, "autoVerify"));
-                    }
-                } else if (eventType == XmlResourceParser.END_TAG && inActivity) {
-                    if ("activity".equals(parser.getName())) {
-                        inActivity = false;
+            // Extract deep links from the manifest
+            parseManifestForDeepLinks(parser);
+
+            // Notify the adapter that the data has changed (i.e., the RecyclerView will update)
+            adapter.notifyDataSetChanged();
+            Log.d(TAG, "Deep link extraction complete. Found " + deepLinks.size() + " deep links.");
+
+            // If no deep links were found, show a Toast
+            if (deepLinks.isEmpty()) {
+                Toast.makeText(this, "No deep links found", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (PackageManager.NameNotFoundException | IOException | XmlPullParserException e) {
+            // Handle exceptions related to package info and manifest parsing
+            e.printStackTrace();
+            Toast.makeText(this, "Error extracting deep links", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Error extracting deep links", e);
+        }
+    }
+
+    /**
+     * Parses the AndroidManifest.xml to find deep links associated with activities.
+     *
+     * @param parser The XML parser for the manifest.
+     * @throws XmlPullParserException If an error occurs during XML parsing.
+     * @throws IOException If an I/O error occurs.
+     */
+    private void parseManifestForDeepLinks(XmlResourceParser parser) throws XmlPullParserException, IOException {
+        // Get the initial event type
+        int eventType = parser.getEventType();
+        String currentActivity = null;
+
+        // Loop through the XML document until the end is reached
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG) {
+                // Check if the tag is an "activity"
+                String tagName = parser.getName();
+
+                if ("activity".equals(tagName)) {
+                    // Store the current activity name
+                    currentActivity = parser.getAttributeValue(null, "name");
+                }
+                // Check if the tag is "data" and if it's within an activity
+                else if ("data".equals(tagName) && currentActivity != null) {
+                    // Extract scheme and host attributes from the data tag
+                    String scheme = parser.getAttributeValue(null, "scheme");
+                    String host = parser.getAttributeValue(null, "host");
+
+                    // If either scheme or host is present, consider it a deep link
+                    if (scheme != null || host != null) {
+                        String deepLink = scheme + "://" + (host != null ? host : "");
+                        deepLinks.add(currentActivity + " handles: " + deepLink);
+                        Log.d(TAG, "Found deep link: " + deepLink + " in activity: " + currentActivity);
                     }
                 }
-                eventType = parser.next();
             }
-            return autoVerify;
-        } catch (XmlPullParserException | IOException | PackageManager.NameNotFoundException e) {
-            Log.e("DeepLinks", "Error parsing manifest for activity: " + activityInfo.name, e);
-            return false;
+            // Reset the current activity once the activity tag ends
+            else if (eventType == XmlPullParser.END_TAG && "activity".equals(parser.getName())) {
+                currentActivity = null;
+            }
+
+            // Move to the next event
+            eventType = parser.next();
         }
     }
 }
