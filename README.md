@@ -16,28 +16,24 @@ The purpose of this project is to extract deep links from the `AndroidManifest.x
 
 ### Challenges Faced
 1. **Android Security Restrictions**:
-   - Android prevents direct access to the manifest file of another app, making it difficult to programmatically extract deep links within the app.
+   - Android prevents direct access to the manifest file of another app, making it difficult to extract deep links within the app.
    
 2. **Need for External Tools**:
-   - To extract and parse the `AndroidManifest.xml` of another app, tools like `apktool` or `AXMLParser` would be necessary. These tools are typically used outside the Android environment.
+   - To extract and parse the `AndroidManifest.xml` of another app, tools like `apktool` or `AXMLParser` would be necessary.
 
 ## Next Steps for Future Developers
 1. **Evaluate the Approach**:
    - Decide whether the deep link extraction needs to be performed on-device or outside the Android environment (e.g., using `apktool` to decompile the APK and extract the manifest).
    
 2. **Use External Libraries**:
-   - Investigate libraries such as `AXMLParser` to programmatically parse the `AndroidManifest.xml` on-device if that remains a requirement.
-
-3. **Possible Alternatives**:
-   - If analyzing multiple apps is a requirement, consider building a server-side tool that receives APK files, extracts the manifest, and returns the deep links.
-   - Alternatively, a CLI tool could be built to extract deep links from APKs using `apktool` and similar tools.
+   - Investigate libraries such as `AXMLParser` to parse the `AndroidManifest.xml` on-device if that remains a requirement.
 
 ## Current Code State
 - **DeepLinksActivity.java**: 
    - Contains the logic for attempting to extract deep links from activities within the target application.
    - Due to Android restrictions, the current implementation will not work for parsing another app's manifest.
 - **IPCActivity.java and IPCAdapter.java**: 
-   - These files focus on Inter-Process Communication (IPC) components of the app, but they were not the main focus as we shifted to handling deep links specifically.
+   - These files focus on Inter-Process Communication (IPC) components of the app.
 
 ## How IPC Components Work
 This section provides an overview of how the Inter-Process Communication (IPC) components of the app work, including activities, services, content providers, and broadcast receivers. The IPC components are displayed in a `RecyclerView` and allow users to interact with them.
