@@ -2,6 +2,7 @@
 
 ### IMPORTANT
 **- When interacting with the application, user needs to make sure all of the permissions are provided inside the Manifest.xml. Otherwise the application won't work.**
+
 **- Application will work only when us installed on the device, where application that needs to be tested are installed.**
 
 ## Project Summary
