@@ -178,8 +178,26 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
                 String serviceName = selectedItemText.replace("Service: ", "");
                 showPermissionDialog(() -> services.promptForServiceParameters(this, currentPackageName, serviceName));
             } else if (selectedItemText.startsWith("Provider: ")) {
-                String providerAuthority = selectedItemText.replace("Provider: ", "");
-                providers.discoverContentProviderPaths(providerAuthority);
+                // Extract the provider name from the selected item text
+                String providerName = selectedItemText.replace("Provider: ", "");
+
+                // Retrieve the provider authority using the PackageManager
+                ProviderInfo[] providers = packageManager.getPackageInfo(currentPackageName, PackageManager.GET_PROVIDERS).providers;
+                String providerAuthority = null;
+
+                for (ProviderInfo providerInfo : providers) {
+                    if (providerInfo.name.equals(providerName)) {
+                        providerAuthority = providerInfo.authority;
+                        break;
+                    }
+                }
+
+                if (providerAuthority != null) {
+                    // Use the extracted authority instead of the provider name
+                    this.providers.discoverContentProviderPaths(providerAuthority);
+                } else {
+                    Toast.makeText(this, "Provider authority not found.", Toast.LENGTH_SHORT).show();
+                }
             } else if (selectedItemText.startsWith("Receiver: ")) {
                 String receiverName = selectedItemText.replace("Receiver: ", "");
                 broadcasts.promptForBroadcastPermissionParameters(this, receiverName);
@@ -191,6 +209,8 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
             Toast.makeText(this, "Error handling item click", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     /**
      * Callback method triggered when content provider path discovery is complete.
