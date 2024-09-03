@@ -19,10 +19,18 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="109dp"
-        android:layout_marginTop="47dp"
-        android:layout_marginEnd="109dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="52dp"
         android:text="@string/show_accessible_paths" />
+
+    <Button
+        android:id="@+id/btnStopDiscovery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="52dp"
+        android:text="Stop" />
 
 </RelativeLayout>

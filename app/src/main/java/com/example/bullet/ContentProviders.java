@@ -29,12 +29,20 @@ public class ContentProviders {
 
     private final Context context;
     private final DiscoveryCallback callback;
+    private boolean stopRequested = false;  // Flag to know when the process will be stopped
 
     /**
      * Interface for callback to be invoked when content provider discovery is complete.
      */
     public interface DiscoveryCallback {
         void onDiscoveryComplete(List<String> accessiblePaths);
+    }
+
+    /**
+     *  Method to stop the discovery process
+     */
+    public void stopDiscovery(){
+        stopRequested = true;
     }
 
     public ContentProviders(Context context, DiscoveryCallback callback) {
@@ -65,6 +73,12 @@ public class ContentProviders {
                 int counter = 0;
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    //  Print inside the console that process has successfully stopped
+                    if (stopRequested) {
+                        Log.i("ContentProviders", "Discovery process stopped.");
+                        break;
+                    }
+
                     String path = line.trim();
                     path = "content://" + authority + "/" + path;
 

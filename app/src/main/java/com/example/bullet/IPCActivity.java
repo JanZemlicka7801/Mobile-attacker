@@ -81,6 +81,10 @@ public class IPCActivity extends AppCompatActivity implements ContentProviders.D
         // Set up button to display accessible paths discovered
         Button btnShowPaths = findViewById(R.id.btnShowPaths);
         btnShowPaths.setOnClickListener(view -> showAccessiblePaths());
+
+        // Set up the new Stop button
+        Button btnStopDiscovery = findViewById(R.id.btnStopDiscovery);
+        btnStopDiscovery.setOnClickListener(view -> providers.stopDiscovery());
     }
 
     /**
